@@ -1,0 +1,78 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+building_block_type = "default"
+description = """
+This rule monitors for a rapid enumeration of 25 different proc cmd, stat, and exe files, which suggests an abnormal
+activity pattern. Such behavior could be an indicator of a malicious process scanning or gathering information about
+running processes, potentially for reconnaissance, privilege escalation, or identifying vulnerable targets.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-119m"
+index = ["auditbeat-*", "logs-auditd_manager.auditd-*", "logs-logen-*"]
+interval = "60m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "Suspicious Proc Pseudo File System Enumeration [Duplicate]"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "1193ee94-a743-4949-9f2d-b27c2fc71608"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = [
+    "Data Source: Auditd Manager",
+    "OS: Linux",
+    "Use Case: Threat Detection",
+    "Tactic: Discovery",
+    "Rule Type: BBR",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "threshold"
+
+query = '''
+host.os.type:linux and event.category:file and event.action:"opened-file" and 
+file.path : (/proc/*/cmdline or /proc/*/stat or /proc/*/exe) and not process.name : (
+  ps or netstat or landscape-sysin or w or pgrep or pidof or needrestart or apparmor_status
+) and not process.parent.pid : 1
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1057"
+name = "Process Discovery"
+reference = "https://attack.mitre.org/techniques/T1057/"
+
+[[rule.threat.technique]]
+id = "T1082"
+name = "System Information Discovery"
+reference = "https://attack.mitre.org/techniques/T1082/"
+
+
+[rule.threat.tactic]
+id = "TA0007"
+name = "Discovery"
+reference = "https://attack.mitre.org/tactics/TA0007/"
+
+[rule.threshold]
+field = ["host.id", "process.pid", "process.name"]
+value = 1
+[[rule.threshold.cardinality]]
+field = "file.path"
+value = 100
+
+

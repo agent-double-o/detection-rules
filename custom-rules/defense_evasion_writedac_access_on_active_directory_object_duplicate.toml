@@ -1,0 +1,75 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+building_block_type = "default"
+description = """
+Identifies the access on an object with WRITEDAC permissions. With the WRITEDAC permission, the user can perform a Write
+Discretionary Access Control List (WriteDACL) operation, which is used to modify the access control rules associated
+with a specific object within Active Directory. Attackers may abuse this privilege to grant themselves or other
+compromised accounts additional rights, ultimately compromising the target object, resulting in privilege escalation,
+lateral movement, and persistence.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-119m"
+index = ["winlogbeat-*", "logs-system.security*", "logs-windows.*", "logs-logen-*"]
+interval = "60m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "WRITEDAC Access on Active Directory Object [Duplicate]"
+references = [
+    "https://www.blackhat.com/docs/us-17/wednesday/us-17-Robbins-An-ACE-Up-The-Sleeve-Designing-Active-Directory-DACL-Backdoors.pdf",
+]
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "25e63169-1140-4c4c-9f0d-3a62da2e0abb"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Windows",
+    "Use Case: Threat Detection",
+    "Tactic: Defense Evasion",
+    "Data Source: Active Directory",
+    "Use Case: Active Directory Monitoring",
+    "Rule Type: BBR",
+    "Duplicated",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+host.os.type: "windows" and event.action : ("Directory Service Access" or "object-operation-performed") and
+  event.code : "4662" and winlog.event_data.AccessMask:"0x40000"
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1222"
+name = "File and Directory Permissions Modification"
+reference = "https://attack.mitre.org/techniques/T1222/"
+[[rule.threat.technique.subtechnique]]
+id = "T1222.001"
+name = "Windows File and Directory Permissions Modification"
+reference = "https://attack.mitre.org/techniques/T1222/001/"
+
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

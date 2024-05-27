@@ -1,0 +1,63 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Austin Songer"]
+description = """
+Identifies when Microsoft Cloud App Security reports that a user has uploaded files to the cloud that might be infected
+with ransomware.
+"""
+enabled = true
+exceptions_list = []
+false_positives = [
+    """
+    If Cloud App Security identifies, for example, a high rate of file uploads or file deletion activities it may
+    represent an adverse encryption process.
+    """,
+]
+from = "now-30m"
+index = ["filebeat-*", "logs-o365*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "Microsoft 365 Potential ransomware activity [Duplicate]"
+note = ""
+references = [
+    "https://docs.microsoft.com/en-us/cloud-app-security/anomaly-detection-policy",
+    "https://docs.microsoft.com/en-us/cloud-app-security/policy-template-reference",
+]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "71d00cbc-e7af-446f-9e7e-b27afac119fb"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = ["Domain: Cloud", "Data Source: Microsoft 365", "Use Case: Configuration Audit", "Tactic: Impact"]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.dataset:o365.audit and event.provider:SecurityComplianceCenter and event.category:web and event.action:"Potential ransomware activity" and event.outcome:success
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1486"
+name = "Data Encrypted for Impact"
+reference = "https://attack.mitre.org/techniques/T1486/"
+
+
+[rule.threat.tactic]
+id = "TA0040"
+name = "Impact"
+reference = "https://attack.mitre.org/tactics/TA0040/"
+

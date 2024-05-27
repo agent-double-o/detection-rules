@@ -1,0 +1,69 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+This rule monitors a sequence involving a program compilation event followed by its execution and a subsequent
+alteration of UID permissions to root privileges. This behavior can potentially indicate the execution of a kernel or
+software privilege escalation exploit.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["logs-endpoint.events.*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Potential Privilege Escalation via Recently Compiled Executable [Duplicate]"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "25ccdb5e-e311-441d-8f32-665882c8dd3b"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Linux",
+    "Use Case: Threat Detection",
+    "Tactic: Privilege Escalation",
+    "Use Case: Vulnerability",
+    "Data Source: Elastic Defend",
+]
+to = "now"
+type = "eql"
+
+query = '''
+sequence by host.id with maxspan=1m
+  [process where host.os.type == "linux" and event.type == "start" and event.action == "exec" and 
+   process.name in ("gcc", "g++", "cc") and user.id != "0"] by process.args
+  [file where host.os.type == "linux" and event.action == "creation" and event.type == "creation" and 
+   process.name == "ld" and user.id != "0"] by file.name
+  [process where host.os.type == "linux" and event.type == "start" and event.action == "exec" and 
+   user.id != "0"] by process.name
+  [process where host.os.type == "linux" and event.action in ("uid_change", "guid_change") and event.type == "change" and 
+   user.id == "0"] by process.name
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1068"
+name = "Exploitation for Privilege Escalation"
+reference = "https://attack.mitre.org/techniques/T1068/"
+
+
+[rule.threat.tactic]
+id = "TA0004"
+name = "Privilege Escalation"
+reference = "https://attack.mitre.org/tactics/TA0004/"
+

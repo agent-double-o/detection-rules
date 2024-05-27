@@ -1,0 +1,66 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies when the configuration is modified for a storage bucket in Google Cloud Platform (GCP). An adversary may
+modify the configuration of a storage bucket in order to weaken the security controls of their target's environment.
+"""
+enabled = true
+exceptions_list = []
+false_positives = [
+    """
+    Storage bucket configuration may be modified by system administrators. Verify that the configuration change was
+    expected. Exceptions can be added to this rule to filter expected behavior.
+    """,
+]
+from = "now-6m"
+index = ["filebeat-*", "logs-gcp*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "GCP Storage Bucket Configuration Modification [Duplicate]"
+note = ""
+references = ["https://cloud.google.com/storage/docs/key-terms#buckets"]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "3aa5d09e-65c2-48cf-be09-a8561f7d3f9e"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Cloud",
+    "Data Source: GCP",
+    "Data Source: Google Cloud Platform",
+    "Use Case: Identity and Access Audit",
+    "Tactic: Defense Evasion",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.dataset:gcp.audit and event.action:"storage.buckets.update" and event.outcome:success
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1578"
+name = "Modify Cloud Compute Infrastructure"
+reference = "https://attack.mitre.org/techniques/T1578/"
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

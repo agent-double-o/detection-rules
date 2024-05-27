@@ -1,0 +1,67 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Austin Songer"]
+description = "Identifies when an ElastiCache security group has been created."
+enabled = true
+exceptions_list = []
+false_positives = [
+    """
+    A ElastiCache security group may be created by a system or network administrator. Verify whether the user identity,
+    user agent, and/or hostname should be making changes in your environment. Security group creations by unfamiliar
+    users or hosts should be investigated. If known behavior is causing false positives, it can be exempted from the
+    rule.
+    """,
+]
+from = "now-60m"
+index = ["filebeat-*", "logs-aws.cloudtrail-*", "logs-logen-*"]
+interval = "10m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "AWS ElastiCache Security Group Created [Duplicate]"
+note = ""
+references = [
+    "https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_CreateCacheSecurityGroup.html",
+]
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "d5d7d848-b777-4cbd-8b65-b2b761a6519b"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = ["Domain: Cloud", "Data Source: AWS", "Data Source: Amazon Web Services", "Tactic: Defense Evasion"]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.dataset:aws.cloudtrail and event.provider:elasticache.amazonaws.com and event.action:"Create Cache Security Group" and
+event.outcome:success
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1562"
+name = "Impair Defenses"
+reference = "https://attack.mitre.org/techniques/T1562/"
+[[rule.threat.technique.subtechnique]]
+id = "T1562.007"
+name = "Disable or Modify Cloud Firewall"
+reference = "https://attack.mitre.org/techniques/T1562/007/"
+
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

@@ -1,0 +1,58 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies when an Azure Conditional Access policy is modified. Azure Conditional Access policies control access to
+resources via if-then statements. For example, if a user wants to access a resource, then they must complete an action
+such as using multi-factor authentication to access it. An adversary may modify a Conditional Access policy in order to
+weaken their target's security controls.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-25m"
+index = ["filebeat-*", "logs-azure*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "Azure Conditional Access Policy Modified [Duplicate]"
+note = ""
+references = ["https://docs.microsoft.com/en-us/azure/active-directory/conditional-access/overview"]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "ccb124c8-4255-4117-a257-fe7be32db586"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = ["Domain: Cloud", "Data Source: Azure", "Use Case: Configuration Audit", "Tactic: Persistence"]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.dataset:(azure.activitylogs or azure.auditlogs) and
+event.action:"Update conditional access policy" and event.outcome:(Success or success)
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1098"
+name = "Account Manipulation"
+reference = "https://attack.mitre.org/techniques/T1098/"
+
+
+[rule.threat.tactic]
+id = "TA0003"
+name = "Persistence"
+reference = "https://attack.mitre.org/tactics/TA0003/"
+

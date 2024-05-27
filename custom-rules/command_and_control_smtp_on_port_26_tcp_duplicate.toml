@@ -1,0 +1,71 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+This rule detects events that may indicate use of SMTP on TCP port 26. This port is commonly used by several popular
+mail transfer agents to deconflict with the default SMTP port 25. This port has also been used by a malware family
+called BadPatch for command and control of Windows systems.
+"""
+enabled = true
+exceptions_list = []
+false_positives = [
+    """
+    Servers that process email traffic may cause false positives and should be excluded from this rule as this is
+    expected behavior.
+    """,
+]
+from = "now-9m"
+index = ["packetbeat-*", "auditbeat-*", "filebeat-*", "logs-network_traffic.*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "SMTP on Port 26/TCP [Duplicate]"
+references = [
+    "https://unit42.paloaltonetworks.com/unit42-badpatch/",
+    "https://isc.sans.edu/forums/diary/Next+up+whats+up+with+TCP+port+26/25564/",
+]
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "072129cf-ad9b-4408-945a-17a7840217a2"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = ["Tactic: Command and Control", "Domain: Endpoint", "Use Case: Threat Detection"]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+(event.dataset: (network_traffic.flow or zeek.smtp) or event.category:(network or network_traffic)) and network.transport:tcp and destination.port:26
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+technique = []
+
+[rule.threat.tactic]
+id = "TA0011"
+name = "Command and Control"
+reference = "https://attack.mitre.org/tactics/TA0011/"
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1048"
+name = "Exfiltration Over Alternative Protocol"
+reference = "https://attack.mitre.org/techniques/T1048/"
+
+
+[rule.threat.tactic]
+id = "TA0010"
+name = "Exfiltration"
+reference = "https://attack.mitre.org/tactics/TA0010/"
+

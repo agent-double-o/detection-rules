@@ -1,0 +1,101 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic", "Austin Songer"]
+description = """
+Identifies suspicious processes being spawned by the Microsoft Exchange Server Unified Messaging (UM) service. This
+activity has been observed exploiting CVE-2021-26857.
+"""
+enabled = true
+exceptions_list = []
+false_positives = [
+    """
+    Legitimate processes may be spawned from the Microsoft Exchange Server Unified Messaging (UM) service. If known
+    processes are causing false positives, they can be exempted from the rule.
+    """,
+]
+from = "now-9m"
+index = [
+    "logs-endpoint.events.process-*",
+    "winlogbeat-*",
+    "logs-windows.*",
+    "endgame-*",
+    "logs-system.security*",
+    "logs-logen-*",
+]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Microsoft Exchange Server UM Spawning Suspicious Processes [Duplicate]"
+references = [
+    "https://www.microsoft.com/security/blog/2021/03/02/hafnium-targeting-exchange-servers",
+    "https://www.volexity.com/blog/2021/03/02/active-exploitation-of-microsoft-exchange-zero-day-vulnerabilities",
+]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "979e2f31-1b50-4ee8-b2a5-1814bad25c15"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Windows",
+    "Use Case: Threat Detection",
+    "Tactic: Initial Access",
+    "Tactic: Lateral Movement",
+    "Data Source: Elastic Endgame",
+    "Use Case: Vulnerability",
+    "Data Source: Elastic Defend",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+process where host.os.type == "windows" and event.type == "start" and
+  process.parent.name : ("UMService.exe", "UMWorkerProcess.exe") and
+    not process.executable :
+              ("?:\\Windows\\System32\\werfault.exe",
+               "?:\\Windows\\System32\\wermgr.exe",
+               "?:\\Program Files\\Microsoft\\Exchange Server\\V??\\Bin\\UMWorkerProcess.exe",
+               "?:\\Program Files\\Microsoft\\Exchange Server\\Bin\\UMWorkerProcess.exe",
+               "D:\\Exchange 2016\\Bin\\UMWorkerProcess.exe",
+               "E:\\ExchangeServer\\Bin\\UMWorkerProcess.exe",
+               "D:\\Exchange\\Bin\\UMWorkerProcess.exe",
+               "D:\\Exchange Server\\Bin\\UMWorkerProcess.exe",
+               "E:\\Exchange Server\\V15\\Bin\\UMWorkerProcess.exe")
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1190"
+name = "Exploit Public-Facing Application"
+reference = "https://attack.mitre.org/techniques/T1190/"
+
+
+[rule.threat.tactic]
+id = "TA0001"
+name = "Initial Access"
+reference = "https://attack.mitre.org/tactics/TA0001/"
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1210"
+name = "Exploitation of Remote Services"
+reference = "https://attack.mitre.org/techniques/T1210/"
+
+
+[rule.threat.tactic]
+id = "TA0008"
+name = "Lateral Movement"
+reference = "https://attack.mitre.org/tactics/TA0008/"
+

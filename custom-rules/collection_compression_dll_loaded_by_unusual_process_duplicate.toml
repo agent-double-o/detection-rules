@@ -1,0 +1,80 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+building_block_type = "default"
+description = """
+Identifies the image load of a compression DLL. Adversaries will often compress and encrypt data in preparation for
+exfiltration.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-119m"
+index = ["logs-endpoint.events.library-*", "logs-logen-*"]
+interval = "60m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Compression DLL Loaded by Unusual Process [Duplicate]"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "78d47930-0038-4859-a51b-60333683c441"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Windows",
+    "Use Case: Threat Detection",
+    "Tactic: Collection",
+    "Data Source: Elastic Defend",
+    "Rule Type: BBR",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+library where host.os.type == "windows" and event.action == "load" and
+  dll.name : ("System.IO.Compression.FileSystem.ni.dll", "System.IO.Compression.ni.dll") and
+  not 
+  (
+    (
+      process.executable : (
+        "?:\\Program Files\\*",
+        "?:\\Program Files (x86)\\*",
+        "?:\\Windows\\Microsoft.NET\\Framework*\\mscorsvw.exe",
+        "?:\\Windows\\System32\\sdiagnhost.exe",
+        "?:\\Windows\\System32\\inetsrv\\w3wp.exe",
+        "?:\\Windows\\SysWOW64\\inetsrv\\w3wp.exe",
+        "?:\\ProgramData\\Microsoft\\Windows Defender Advanced Threat Protection\\DataCollection\\*\\OpenHandleCollector.exe"
+      ) and process.code_signature.trusted == true
+    ) or
+    (
+      process.name : "NuGet.exe" and process.code_signature.trusted == true and user.id : ("S-1-5-18", "S-1-5-20")
+    )
+  )
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1560"
+name = "Archive Collected Data"
+reference = "https://attack.mitre.org/techniques/T1560/"
+
+
+[rule.threat.tactic]
+id = "TA0009"
+name = "Collection"
+reference = "https://attack.mitre.org/tactics/TA0009/"
+

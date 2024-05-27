@@ -1,0 +1,66 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+This rule monitors for the execution of a suspicious sudo command that is leveraged in CVE-2019-14287 to escalate
+privileges to root. Sudo does not verify the presence of the designated user ID and proceeds to execute using a user ID
+that can be chosen arbitrarily. By using the sudo privileges, the command "sudo -u#-1" translates to an ID of 0,
+representing the root user. This exploit may work for sudo versions prior to v1.28.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["logs-endpoint.events.*", "endgame-*", "auditbeat-*", "logs-auditd_manager.auditd-*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Potential Sudo Privilege Escalation via CVE-2019-14287 [Duplicate]"
+references = ["https://www.exploit-db.com/exploits/47502"]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "fce8d561-e1cf-4de7-be84-6e6c019ee578"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Linux",
+    "Use Case: Threat Detection",
+    "Tactic: Privilege Escalation",
+    "Data Source: Elastic Defend",
+    "Use Case: Vulnerability",
+    "Data Source: Elastic Endgame",
+    "Data Source: Auditd Manager",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+process where host.os.type == "linux" and event.type == "start" and event.action in ("exec", "exec_event", "executed", "process_started")
+ and process.name == "sudo" and process.args == "-u#-1"
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1068"
+name = "Exploitation for Privilege Escalation"
+reference = "https://attack.mitre.org/techniques/T1068/"
+
+
+[rule.threat.tactic]
+id = "TA0004"
+name = "Privilege Escalation"
+reference = "https://attack.mitre.org/tactics/TA0004/"
+

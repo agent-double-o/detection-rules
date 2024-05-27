@@ -1,0 +1,90 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies suspicious processes being spawned by the ScreenConnect client processes. This activity may indicate
+execution abusing unauthorized access to the ScreenConnect remote access software.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = [
+    "logs-endpoint.events.process-*",
+    "winlogbeat-*",
+    "logs-windows.sysmon_operational-*",
+    "logs-system.security*",
+    "endgame-*",
+    "logs-logen-*",
+]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Suspicious ScreenConnect Client Child Process [Duplicate]"
+references = [
+    "https://www.huntress.com/blog/slashandgrab-screen-connect-post-exploitation-in-the-wild-cve-2024-1709-cve-2024-1708",
+]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "9f4ee90b-9504-4ba3-a8ff-361e149863ac"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Windows",
+    "Use Case: Threat Detection",
+    "Tactic: Command and Control",
+    "Resources: Investigation Guide",
+    "Data Source: Elastic Endgame",
+    "Data Source: Elastic Defend",
+    "Data Source: Sysmon",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+process where host.os.type == "windows" and event.type == "start" and
+  process.parent.name :
+                ("ScreenConnect.ClientService.exe",
+                 "ScreenConnect.WindowsClient.exe",
+                 "ScreenConnect.WindowsBackstageShell.exe",
+                 "ScreenConnect.WindowsFileManager.exe") and
+  (
+   (process.name : "powershell.exe" and
+    process.args : ("-enc", "-ec", "-e", "*downloadstring*", "*Reflection.Assembly*", "*http*")) or
+   (process.name : "cmd.exe" and process.args : "/c") or
+   (process.name : "net.exe" and process.args : "/add") or
+   (process.name : "schtasks.exe" and process.args : ("/create", "-create")) or
+   (process.name : "sc.exe" and process.args : "create") or
+   (process.name : "rundll32.exe" and not process.args : "url.dll,FileProtocolHandler") or
+   (process.name : "msiexec.exe" and process.args : ("/i", "-i") and
+    process.args : ("/q", "/quiet", "/qn", "-q", "-quiet", "-qn", "-Q+")) or
+   process.name : ("mshta.exe", "certutil.exe", "bistadmin.exe", "certreq.exe", "wscript.exe", "cscript.exe", "curl.exe", 
+                   "ssh.exe", "scp.exe", "wevtutil.exe", "wget.exe", "wmic.exe")
+   )
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1219"
+name = "Remote Access Software"
+reference = "https://attack.mitre.org/techniques/T1219/"
+
+
+[rule.threat.tactic]
+id = "TA0011"
+name = "Command and Control"
+reference = "https://attack.mitre.org/tactics/TA0011/"
+

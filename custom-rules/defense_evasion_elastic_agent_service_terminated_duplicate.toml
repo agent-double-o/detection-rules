@@ -1,0 +1,88 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies the Elastic endpoint agent has stopped and is no longer running on the host. Adversaries may attempt to
+disable security monitoring tools in an attempt to evade detection or prevention capabilities during an intrusion. This
+may also indicate an issue with the agent itself and should be addressed to ensure defensive measures are back in a
+stable state.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["logs-endpoint.events.*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Elastic Agent Service Terminated [Duplicate]"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "6c4d0d97-1ca7-4213-9795-f5e6a1ffa67b"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Linux",
+    "OS: Windows",
+    "OS: macOS",
+    "Use Case: Threat Detection",
+    "Tactic: Defense Evasion",
+    "Data Source: Elastic Defend",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+process where
+/* net, sc or wmic stopping or deleting Elastic Agent on Windows */
+(event.type == "start" and
+  process.name : ("net.exe", "sc.exe", "wmic.exe","powershell.exe","taskkill.exe","PsKill.exe","ProcessHacker.exe") and
+  process.args : ("stopservice","uninstall", "stop", "disabled","Stop-Process","terminate","suspend") and
+  process.args : ("elasticendpoint", "Elastic Agent","elastic-agent","elastic-endpoint"))
+or
+/* service or systemctl used to stop Elastic Agent on Linux */
+(event.type == "end" and
+  (process.name : ("systemctl", "service") and
+    process.args : "elastic-agent" and
+    process.args : "stop")
+  or
+  /* pkill , killall used to stop Elastic Agent on Linux */
+  ( event.type == "end" and process.name : ("pkill", "killall") and process.args: "elastic-agent")
+  or
+  /* Unload Elastic Agent extension on MacOS */
+  (process.name : "kextunload" and
+    process.args : "com.apple.iokit.EndpointSecurity" and
+    event.action : "end"))
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1562"
+name = "Impair Defenses"
+reference = "https://attack.mitre.org/techniques/T1562/"
+[[rule.threat.technique.subtechnique]]
+id = "T1562.001"
+name = "Disable or Modify Tools"
+reference = "https://attack.mitre.org/techniques/T1562/001/"
+
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

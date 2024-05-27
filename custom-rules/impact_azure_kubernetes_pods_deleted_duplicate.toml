@@ -1,0 +1,60 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Austin Songer"]
+description = """
+Identifies the deletion of Azure Kubernetes Pods. Adversaries may delete a Kubernetes pod to disrupt the normal behavior
+of the environment.
+"""
+enabled = true
+exceptions_list = []
+false_positives = [
+    """
+    Pods may be deleted by a system administrator. Verify whether the user identity, user agent, and/or hostname should
+    be making changes in your environment. Pods deletions by unfamiliar users or hosts should be investigated. If known
+    behavior is causing false positives, it can be exempted from the rule.
+    """,
+]
+from = "now-25m"
+index = ["filebeat-*", "logs-azure*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "Azure Kubernetes Pods Deleted [Duplicate]"
+note = ""
+references = [
+    "https://docs.microsoft.com/en-us/azure/role-based-access-control/resource-provider-operations#microsoftkubernetes",
+]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "feed4b0b-2b8b-4dc6-b73b-d12851b65ccc"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = ["Domain: Cloud", "Data Source: Azure", "Use Case: Asset Visibility", "Tactic: Impact"]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.dataset:azure.activitylogs and azure.activitylogs.operation_name:"MICROSOFT.KUBERNETES/CONNECTEDCLUSTERS/PODS/DELETE" and
+event.outcome:(Success or success)
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+technique = []
+
+[rule.threat.tactic]
+id = "TA0040"
+name = "Impact"
+reference = "https://attack.mitre.org/tactics/TA0040/"
+

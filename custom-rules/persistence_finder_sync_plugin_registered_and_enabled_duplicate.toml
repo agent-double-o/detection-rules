@@ -1,0 +1,80 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Finder Sync plugins enable users to extend Finder’s functionality by modifying the user interface. Adversaries may abuse
+this feature by adding a rogue Finder Plugin to repeatedly execute malicious payloads for persistence.
+"""
+enabled = true
+exceptions_list = []
+false_positives = ["Trusted Finder Sync Plugins"]
+from = "now-9m"
+index = ["logs-endpoint.events.*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Finder Sync Plugin Registered and Enabled [Duplicate]"
+references = [
+    "https://github.com/specterops/presentations/raw/master/Leo%20Pitt/Hey_Im_Still_in_Here_Modern_macOS_Persistence_SO-CON2020.pdf",
+]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "b46f38a9-c954-4985-b679-abac09a13c83"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: macOS",
+    "Use Case: Threat Detection",
+    "Tactic: Persistence",
+    "Data Source: Elastic Defend",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+process where host.os.type == "macos" and event.type in ("start", "process_started") and process.name : "pluginkit" and
+  process.args : "-e" and process.args : "use" and process.args : "-i" and
+  not process.args :
+  (
+    "com.google.GoogleDrive.FinderSyncAPIExtension",
+    "com.google.drivefs.findersync",
+    "com.boxcryptor.osx.Rednif",
+    "com.adobe.accmac.ACCFinderSync",
+    "com.microsoft.OneDrive.FinderSync",
+    "com.insynchq.Insync.Insync-Finder-Integration",
+    "com.box.desktop.findersyncext"
+  ) and
+  not process.parent.executable : ("/Library/Application Support/IDriveforMac/IDriveHelperTools/FinderPluginApp.app/Contents/MacOS/FinderPluginApp",
+                                   "/Applications/Google Drive.app/Contents/MacOS/Google Drive") and
+  not process.Ext.effective_parent.executable : ("/Applications/Google Drive.app/Contents/MacOS/Google Drive",
+                                                 "/usr/local/jamf/bin/jamf",
+                                                 "/Applications/Nextcloud.app/Contents/MacOS/Nextcloud",
+                                                 "/Library/Application Support/Checkpoint/Endpoint Security/AMFinderExtensions.app/Contents/MacOS/AMFinderExtensions",
+                                                 "/Applications/pCloud Drive.app/Contents/MacOS/pCloud Drive")
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1543"
+name = "Create or Modify System Process"
+reference = "https://attack.mitre.org/techniques/T1543/"
+
+
+[rule.threat.tactic]
+id = "TA0003"
+name = "Persistence"
+reference = "https://attack.mitre.org/tactics/TA0003/"
+

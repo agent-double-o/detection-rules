@@ -1,0 +1,64 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies an attempt to exploit a local privilege escalation CVE-2022-37706 via a flaw in Linux window manager package
+Enlightenment. enlightenment_sys in Enlightenment before 0.25.4 allows local users to gain privileges because it is
+setuid root, and the system library function mishandles pathnames that begin with a /dev/.. substring.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["logs-endpoint.events.*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Potential Privilege Escalation via Enlightenment [Duplicate]"
+references = ["https://ubuntu.com/security/CVE-2022-37706", "https://www.exploit-db.com/exploits/51180"]
+related_integrations = []
+required_fields = []
+risk_score = 73
+risk_score_mapping = []
+rule_id = "67fb68f8-4b4c-4a7f-adb7-d960c860f807"
+setup = ""
+severity = "high"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Linux",
+    "Use Case: Threat Detection",
+    "Tactic: Privilege Escalation",
+    "Use Case: Vulnerability",
+    "Data Source: Elastic Defend",
+]
+to = "now"
+type = "eql"
+
+query = '''
+sequence by host.id, process.parent.entity_id with maxspan=5s
+  [process where host.os.type == "linux" and event.type == "start" and event.action == "exec" and
+    process.name == "enlightenment_sys" and process.args in ("/bin/mount/", "-o","noexec","nosuid","nodev","uid=*") ]
+  [process where host.os.type == "linux" and event.action == "uid_change" and event.type == "change" and user.id == "0"]
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1068"
+name = "Exploitation for Privilege Escalation"
+reference = "https://attack.mitre.org/techniques/T1068/"
+
+
+[rule.threat.tactic]
+id = "TA0004"
+name = "Privilege Escalation"
+reference = "https://attack.mitre.org/tactics/TA0004/"
+

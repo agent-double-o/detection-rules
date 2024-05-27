@@ -1,0 +1,99 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = "A suspicious SolarWinds child process was detected, which may indicate an attempt to execute malicious programs."
+enabled = true
+exceptions_list = []
+false_positives = [
+    "Trusted SolarWinds child processes, verify process details such as network connections and file writes.",
+]
+from = "now-9m"
+index = ["logs-endpoint.events.process-*", "endgame-*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Suspicious SolarWinds Child Process [Duplicate]"
+references = [
+    "https://www.fireeye.com/blog/threat-research/2020/12/evasive-attacker-leverages-solarwinds-supply-chain-compromises-with-sunburst-backdoor.html",
+    "https://github.com/mandiant/sunburst_countermeasures/blob/main/rules/SUNBURST/hxioc/SUNBURST%20SUSPICIOUS%20CHILD%20PROCESSES%20(METHODOLOGY).ioc",
+]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "24537a09-c830-4557-a54a-44721dbb1eb7"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Windows",
+    "Use Case: Threat Detection",
+    "Tactic: Execution",
+    "Data Source: Elastic Endgame",
+    "Data Source: Elastic Defend",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+process where host.os.type == "windows" and event.type == "start" and
+ process.parent.name: ("SolarWinds.BusinessLayerHost.exe", "SolarWinds.BusinessLayerHostx64.exe") and
+ not (
+    process.name : (
+        "APMServiceControl*.exe",
+        "ExportToPDFCmd*.Exe",
+        "SolarWinds.Credentials.Orion.WebApi*.exe",
+        "SolarWinds.Orion.Topology.Calculator*.exe",
+        "Database-Maint.exe",
+        "SolarWinds.Orion.ApiPoller.Service.exe",
+        "WerFault.exe",
+        "WerMgr.exe",
+        "SolarWinds.BusinessLayerHost.exe",
+        "SolarWinds.BusinessLayerHostx64.exe",
+        "SolarWinds.Topology.Calculator.exe",
+        "SolarWinds.Topology.Calculatorx64.exe",
+        "SolarWinds.APM.RealTimeProcessPoller.exe") and
+    process.code_signature.trusted == true
+ ) and
+ not process.executable : ("?:\\Windows\\SysWOW64\\ARP.EXE", "?:\\Windows\\SysWOW64\\lodctr.exe", "?:\\Windows\\SysWOW64\\unlodctr.exe")
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1106"
+name = "Native API"
+reference = "https://attack.mitre.org/techniques/T1106/"
+
+
+[rule.threat.tactic]
+id = "TA0002"
+name = "Execution"
+reference = "https://attack.mitre.org/tactics/TA0002/"
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1195"
+name = "Supply Chain Compromise"
+reference = "https://attack.mitre.org/techniques/T1195/"
+[[rule.threat.technique.subtechnique]]
+id = "T1195.002"
+name = "Compromise Software Supply Chain"
+reference = "https://attack.mitre.org/techniques/T1195/002/"
+
+
+
+[rule.threat.tactic]
+id = "TA0001"
+name = "Initial Access"
+reference = "https://attack.mitre.org/tactics/TA0001/"
+

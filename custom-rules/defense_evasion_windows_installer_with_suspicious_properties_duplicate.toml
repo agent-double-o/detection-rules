@@ -1,0 +1,80 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+building_block_type = "default"
+description = """
+Identifies the execution of an installer from an archive or with suspicious properties. Adversaries may abuse
+msiexec.exe to launch local or network accessible MSI files in an attempt to bypass application whitelisting.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-119m"
+index = ["logs-endpoint.events.*", "logs-logen-*"]
+interval = "60m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Windows Installer with Suspicious Properties [Duplicate]"
+references = ["https://lolbas-project.github.io/lolbas/Binaries/Msiexec/"]
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "a1bb334f-e06b-4c43-aca4-4d98cb0532d3"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Windows",
+    "Use Case: Threat Detection",
+    "Tactic: Defense Evasion",
+    "Rule Type: BBR",
+    "Data Source: Elastic Defend",
+    "Duplicated",
+]
+to = "now"
+type = "eql"
+
+query = '''
+sequence with maxspan=1m
+  [registry where host.os.type == "windows" and process.name : "msiexec.exe" and
+   (
+    (registry.value : "InstallSource" and
+     registry.data.strings : ("?:\\Users\\*\\Temp\\Temp?_*.zip\\*",
+                             "?:\\Users\\*\\*.7z\\*",
+                             "?:\\Users\\*\\*.rar\\*")) or
+
+    (registry.value : ("DisplayName", "ProductName") and registry.data.strings : "SetupTest")
+    )]
+  [process where host.os.type == "windows" and event.action == "start" and
+    process.parent.name : "msiexec.exe" and
+    not process.name : "msiexec.exe" and
+    not (process.executable : ("?:\\Program Files (x86)\\*.exe", "?:\\Program Files\\*.exe") and process.code_signature.trusted == true)]
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1218"
+name = "System Binary Proxy Execution"
+reference = "https://attack.mitre.org/techniques/T1218/"
+[[rule.threat.technique.subtechnique]]
+id = "T1218.007"
+name = "Msiexec"
+reference = "https://attack.mitre.org/techniques/T1218/007/"
+
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

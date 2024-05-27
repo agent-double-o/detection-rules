@@ -1,0 +1,62 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+This rule detects setting modifications for protected branches of a GitHub repository. Branch protection rules can be
+used to enforce certain workflows or requirements before a contributor can push changes to a branch in your repository.
+Changes to these protected branch settings should be investigated and verified as legitimate activity. Unauthorized
+changes could be used to lower your organization's security posture and leave you exposed for future attacks.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["logs-github.audit-*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "GitHub Protected Branch Settings Changed [Duplicate]"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "09e4a8cb-aa50-4b59-81ee-8be0aa328fb7"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = ["Domain: Cloud", "Use Case: Threat Detection", "Tactic: Defense Evasion", "Data Source: Github"]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+configuration where event.dataset == "github.audit" 
+  and github.category == "protected_branch" and event.type == "change"
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1562"
+name = "Impair Defenses"
+reference = "https://attack.mitre.org/techniques/T1562/"
+[[rule.threat.technique.subtechnique]]
+id = "T1562.001"
+name = "Disable or Modify Tools"
+reference = "https://attack.mitre.org/techniques/T1562/001/"
+
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

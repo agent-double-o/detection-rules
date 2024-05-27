@@ -1,0 +1,73 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Adversaries may create or modify the Sublime application plugins or scripts to execute a malicious payload each time the
+Sublime application is started.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["logs-endpoint.events.*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Sublime Plugin or Application Script Modification [Duplicate]"
+references = ["https://posts.specterops.io/persistent-jxa-66e1c3cd1cf5"]
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "710da3c2-6972-4b06-a606-ec89a9783e04"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: macOS",
+    "Use Case: Threat Detection",
+    "Tactic: Persistence",
+    "Data Source: Elastic Defend",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+file where host.os.type == "macos" and event.type in ("change", "creation") and file.extension : "py" and
+  file.path :
+    (
+      "/Users/*/Library/Application Support/Sublime Text*/Packages/*.py",
+      "/Applications/Sublime Text.app/Contents/MacOS/sublime.py"
+    ) and
+  not process.executable :
+    (
+      "/Applications/Sublime Text*.app/Contents/*",
+      "/usr/local/Cellar/git/*/bin/git",
+      "/Library/Developer/CommandLineTools/usr/bin/git",
+      "/usr/libexec/xpcproxy",
+      "/System/Library/PrivateFrameworks/DesktopServicesPriv.framework/Versions/A/Resources/DesktopServicesHelper"
+    )
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1554"
+name = "Compromise Client Software Binary"
+reference = "https://attack.mitre.org/techniques/T1554/"
+
+
+[rule.threat.tactic]
+id = "TA0003"
+name = "Persistence"
+reference = "https://attack.mitre.org/tactics/TA0003/"
+

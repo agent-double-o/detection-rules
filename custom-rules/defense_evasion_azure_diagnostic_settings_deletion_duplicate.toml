@@ -1,0 +1,67 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies the deletion of diagnostic settings in Azure, which send platform logs and metrics to different destinations.
+An adversary may delete diagnostic settings in an attempt to evade defenses.
+"""
+enabled = true
+exceptions_list = []
+false_positives = [
+    """
+    Deletion of diagnostic settings may be done by a system or network administrator. Verify whether the username,
+    hostname, and/or resource name should be making changes in your environment. Diagnostic settings deletion from
+    unfamiliar users or hosts should be investigated. If known behavior is causing false positives, it can be exempted
+    from the rule.
+    """,
+]
+from = "now-25m"
+index = ["filebeat-*", "logs-azure*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "Azure Diagnostic Settings Deletion [Duplicate]"
+note = ""
+references = ["https://docs.microsoft.com/en-us/azure/azure-monitor/platform/diagnostic-settings"]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "ad639386-fee8-4a01-be77-cf3deeb8edb6"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = ["Domain: Cloud", "Data Source: Azure", "Tactic: Defense Evasion"]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.dataset:azure.activitylogs and azure.activitylogs.operation_name:"MICROSOFT.INSIGHTS/DIAGNOSTICSETTINGS/DELETE" and event.outcome:(Success or success)
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1562"
+name = "Impair Defenses"
+reference = "https://attack.mitre.org/techniques/T1562/"
+[[rule.threat.technique.subtechnique]]
+id = "T1562.001"
+name = "Disable or Modify Tools"
+reference = "https://attack.mitre.org/techniques/T1562/001/"
+
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

@@ -1,0 +1,77 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies Mshta.exe making outbound network connections. This may indicate adversarial activity, as Mshta is often
+leveraged by adversaries to execute malicious scripts and evade detection.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-20m"
+index = [
+    "logs-endpoint.events.process-*",
+    "logs-endpoint.events.network-*",
+    "winlogbeat-*",
+    "logs-windows.sysmon_operational-*",
+    "logs-logen-*",
+]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Mshta Making Network Connections [Duplicate]"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "09740f84-eb72-4d91-92f3-e4f5ed0c52a7"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Windows",
+    "Use Case: Threat Detection",
+    "Tactic: Defense Evasion",
+    "Data Source: Elastic Defend",
+    "Data Source: Sysmon",
+]
+to = "now"
+type = "eql"
+
+query = '''
+sequence by process.entity_id with maxspan=10m
+  [process where host.os.type == "windows" and event.type == "start" and process.name : "mshta.exe" and
+     not process.parent.name : "Microsoft.ConfigurationManagement.exe" and
+     not (process.parent.executable : "C:\\Amazon\\Amazon Assistant\\amazonAssistantService.exe" or
+          process.parent.executable : "C:\\TeamViewer\\TeamViewer.exe") and
+     not process.args : "ADSelfService_Enroll.hta"]
+  [network where host.os.type == "windows" and process.name : "mshta.exe"]
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1218"
+name = "System Binary Proxy Execution"
+reference = "https://attack.mitre.org/techniques/T1218/"
+[[rule.threat.technique.subtechnique]]
+id = "T1218.005"
+name = "Mshta"
+reference = "https://attack.mitre.org/techniques/T1218/005/"
+
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

@@ -1,0 +1,76 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+This detection rule monitors for the execution of a system command with setuid or setgid capabilities via Python,
+followed by a uid or gid change to the root user. This sequence of events may indicate successful privilege escalation.
+Setuid (Set User ID) and setgid (Set Group ID) are Unix-like OS features that enable processes to run with elevated
+privileges, based on the file owner or group. Threat actors can exploit these attributes to escalate privileges to the
+privileges that are set on the binary that is being executed.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["logs-endpoint.events.*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Potential Privilege Escalation via Python cap_setuid [Duplicate]"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "292dc44d-2370-47ed-89a6-5194a1b9d7b0"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Linux",
+    "Use Case: Threat Detection",
+    "Tactic: Privilege Escalation",
+    "Data Source: Elastic Defend",
+]
+to = "now"
+type = "eql"
+
+query = '''
+sequence by host.id, process.entity_id with maxspan=1s
+  [process where host.os.type == "linux" and event.type == "start" and event.action == "exec" and 
+   process.args : "import os;os.set?id(0);os.system(*)" and process.args : "*python*" and user.id != "0"]
+  [process where host.os.type == "linux" and event.action in ("uid_change", "gid_change") and event.type == "change" and 
+   (user.id == "0" or group.id == "0")]
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1068"
+name = "Exploitation for Privilege Escalation"
+reference = "https://attack.mitre.org/techniques/T1068/"
+
+[[rule.threat.technique]]
+id = "T1548"
+name = "Abuse Elevation Control Mechanism"
+reference = "https://attack.mitre.org/techniques/T1548/"
+[[rule.threat.technique.subtechnique]]
+id = "T1548.001"
+name = "Setuid and Setgid"
+reference = "https://attack.mitre.org/techniques/T1548/001/"
+
+
+
+[rule.threat.tactic]
+id = "TA0004"
+name = "Privilege Escalation"
+reference = "https://attack.mitre.org/tactics/TA0004/"
+

@@ -1,0 +1,72 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies process creation with alternate credentials. Adversaries may create a new process with a different token to
+escalate privileges and bypass access controls.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["winlogbeat-*", "logs-system.*", "logs-windows.*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Process Creation via Secondary Logon [Duplicate]"
+references = ["https://attack.mitre.org/techniques/T1134/002/"]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "28f76ddd-250a-4256-9825-8663dc1dafda"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = ["Domain: Endpoint", "OS: Windows", "Use Case: Threat Detection", "Tactic: Privilege Escalation"]
+to = "now"
+type = "eql"
+
+query = '''
+sequence by winlog.computer_name with maxspan=1m
+
+[authentication where event.action:"logged-in" and
+ event.outcome == "success" and user.id : ("S-1-5-21-*", "S-1-12-1-*") and
+
+ /* seclogon service */
+ process.name == "svchost.exe" and
+ winlog.event_data.LogonProcessName : "seclogo*" and source.ip == "::1" ] by winlog.event_data.TargetLogonId
+
+[process where event.type == "start"] by winlog.event_data.TargetLogonId
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1134"
+name = "Access Token Manipulation"
+reference = "https://attack.mitre.org/techniques/T1134/"
+[[rule.threat.technique.subtechnique]]
+id = "T1134.002"
+name = "Create Process with Token"
+reference = "https://attack.mitre.org/techniques/T1134/002/"
+
+[[rule.threat.technique.subtechnique]]
+id = "T1134.003"
+name = "Make and Impersonate Token"
+reference = "https://attack.mitre.org/techniques/T1134/003/"
+
+
+
+[rule.threat.tactic]
+id = "TA0004"
+name = "Privilege Escalation"
+reference = "https://attack.mitre.org/tactics/TA0004/"
+

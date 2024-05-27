@@ -1,0 +1,75 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies a privilege escalation attempt via a rogue Windows directory (Windir) environment variable. This is a known
+primitive that is often combined with other vulnerabilities to elevate privileges.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["logs-endpoint.events.registry-*", "endgame-*", "logs-windows.sysmon_operational-*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Privilege Escalation via Windir Environment Variable [Duplicate]"
+references = ["https://www.tiraniddo.dev/2017/05/exploiting-environment-variables-in.html"]
+related_integrations = []
+required_fields = []
+risk_score = 73
+risk_score_mapping = []
+rule_id = "997d0008-7356-40dc-955e-c3beec67ecef"
+setup = ""
+severity = "high"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Windows",
+    "Use Case: Threat Detection",
+    "Tactic: Privilege Escalation",
+    "Data Source: Elastic Endgame",
+    "Data Source: Elastic Defend",
+    "Data Source: Sysmon",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+registry where host.os.type == "windows" and registry.path : (
+    "HKEY_USERS\\*\\Environment\\windir",
+    "HKEY_USERS\\*\\Environment\\systemroot",
+    "HKU\\*\\Environment\\windir",
+    "HKU\\*\\Environment\\systemroot",
+    "\\REGISTRY\\USER\\*\\Environment\\windir",
+    "\\REGISTRY\\USER\\*\\Environment\\systemroot"
+    ) and
+ not registry.data.strings : ("C:\\windows", "%SystemRoot%")
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1574"
+name = "Hijack Execution Flow"
+reference = "https://attack.mitre.org/techniques/T1574/"
+[[rule.threat.technique.subtechnique]]
+id = "T1574.007"
+name = "Path Interception by PATH Environment Variable"
+reference = "https://attack.mitre.org/techniques/T1574/007/"
+
+
+
+[rule.threat.tactic]
+id = "TA0004"
+name = "Privilege Escalation"
+reference = "https://attack.mitre.org/tactics/TA0004/"
+

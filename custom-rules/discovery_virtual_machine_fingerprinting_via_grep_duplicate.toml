@@ -1,0 +1,70 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+An adversary may attempt to get detailed information about the operating system and hardware. This rule identifies
+common locations used to discover virtual machine hardware by a non-root user. This technique has been used by the Pupy
+RAT and other malware.
+"""
+enabled = true
+exceptions_list = []
+false_positives = [
+    """
+    Certain tools or automated software may enumerate hardware information. These tools can be exempted via user name or
+    process arguments to eliminate potential noise.
+    """,
+]
+from = "now-9m"
+index = ["auditbeat-*", "logs-endpoint.events.*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Virtual Machine Fingerprinting via Grep [Duplicate]"
+references = ["https://objective-see.com/blog/blog_0x4F.html"]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "2900cd36-b740-48e6-a5ea-d256f2ba26b3"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: macOS",
+    "OS: Linux",
+    "Use Case: Threat Detection",
+    "Tactic: Discovery",
+    "Data Source: Elastic Defend",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+process where event.type == "start" and
+ process.name in ("grep", "egrep") and user.id != "0" and
+ process.args : ("parallels*", "vmware*", "virtualbox*") and process.args : "Manufacturer*" and
+ not process.parent.executable in ("/Applications/Docker.app/Contents/MacOS/Docker", "/usr/libexec/kcare/virt-what")
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1082"
+name = "System Information Discovery"
+reference = "https://attack.mitre.org/techniques/T1082/"
+
+
+[rule.threat.tactic]
+id = "TA0007"
+name = "Discovery"
+reference = "https://attack.mitre.org/tactics/TA0007/"
+

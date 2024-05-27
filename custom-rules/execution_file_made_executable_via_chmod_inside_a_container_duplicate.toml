@@ -1,0 +1,83 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+This rule detects when chmod is used to add the execute permission to a file inside a container. Modifying file
+permissions to make a file executable could indicate malicious activity, as an attacker may attempt to run unauthorized
+or malicious code inside the container.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-6m"
+index = ["logs-cloud_defend*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "File Made Executable via Chmod Inside A Container [Duplicate]"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "60e05a14-d2da-4dd3-9f96-686d5f11d7db"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Data Source: Elastic Defend for Containers",
+    "Domain: Container",
+    "OS: Linux",
+    "Use Case: Threat Detection",
+    "Tactic: Execution",
+    "Tactic: Defense Evasion",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+file where container.id: "*" and event.type in ("change", "creation") and
+
+/*account for tools that execute utilities as a subprocess, in this case the target utility name will appear as a process arg*/
+(process.name : "chmod" or process.args : "chmod") and 
+process.args : ("*x*", "777", "755", "754", "700") and not process.args: "-x"
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1059"
+name = "Command and Scripting Interpreter"
+reference = "https://attack.mitre.org/techniques/T1059/"
+
+
+[rule.threat.tactic]
+id = "TA0002"
+name = "Execution"
+reference = "https://attack.mitre.org/tactics/TA0002/"
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1222"
+name = "File and Directory Permissions Modification"
+reference = "https://attack.mitre.org/techniques/T1222/"
+[[rule.threat.technique.subtechnique]]
+id = "T1222.002"
+name = "Linux and Mac File and Directory Permissions Modification"
+reference = "https://attack.mitre.org/techniques/T1222/002/"
+
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

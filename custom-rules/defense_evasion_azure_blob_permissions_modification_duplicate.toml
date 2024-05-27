@@ -1,0 +1,70 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Austin Songer"]
+description = """
+Identifies when the Azure role-based access control (Azure RBAC) permissions are modified for an Azure Blob. An
+adversary may modify the permissions on a blob to weaken their target's security controls or an administrator may
+inadvertently modify the permissions, which could lead to data exposure or loss.
+"""
+enabled = true
+exceptions_list = []
+false_positives = [
+    """
+    Blob permissions may be modified by system administrators. Verify that the configuration change was expected.
+    Exceptions can be added to this rule to filter expected behavior.
+    """,
+]
+from = "now-6m"
+index = ["filebeat-*", "logs-azure*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "Azure Blob Permissions Modification [Duplicate]"
+note = ""
+references = ["https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles"]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "e43990d8-7bdc-4372-9852-6f03341c7eb0"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Cloud",
+    "Data Source: Azure",
+    "Use Case: Identity and Access Audit",
+    "Tactic: Defense Evasion",
+    "Data Source: Elastic Defend",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.dataset:azure.activitylogs and azure.activitylogs.operation_name:(
+     "MICROSOFT.STORAGE/STORAGEACCOUNTS/BLOBSERVICES/CONTAINERS/BLOBS/MANAGEOWNERSHIP/ACTION" or
+     "MICROSOFT.STORAGE/STORAGEACCOUNTS/BLOBSERVICES/CONTAINERS/BLOBS/MODIFYPERMISSIONS/ACTION") and
+  event.outcome:(Success or success)
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1222"
+name = "File and Directory Permissions Modification"
+reference = "https://attack.mitre.org/techniques/T1222/"
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

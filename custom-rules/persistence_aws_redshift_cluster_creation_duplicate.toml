@@ -1,0 +1,65 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies the creation of an Amazon Redshift cluster. Unexpected creation of this cluster by a non-administrative user
+may indicate a permission or role issue with current users. If unexpected, the resource may not properly be configured
+and could introduce security vulnerabilities.
+"""
+enabled = true
+exceptions_list = []
+false_positives = [
+    """
+    Valid clusters may be created by a system or network administrator. Verify whether the user identity, user agent,
+    and/or hostname should be making changes in your environment. Cluster creations by unfamiliar users or hosts should
+    be investigated. If known behavior is causing false positives, it can be exempted from the rule.
+    """,
+]
+from = "now-60m"
+index = ["filebeat-*", "logs-aws.cloudtrail-*", "logs-logen-*"]
+interval = "10m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "AWS Redshift Cluster Creation [Duplicate]"
+note = ""
+references = ["https://docs.aws.amazon.com/redshift/latest/APIReference/API_CreateCluster.html"]
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "41887b21-fe0b-4221-b9b7-2651ab681e33"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = [
+    "Domain: Cloud",
+    "Data Source: AWS",
+    "Data Source: Amazon Web Services",
+    "Data Source: AWS Redshift",
+    "Use Case: Asset Visibility",
+    "Tactic: Persistence",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.dataset:aws.cloudtrail and event.provider:redshift.amazonaws.com and event.action:CreateCluster and event.outcome:success
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+technique = []
+
+[rule.threat.tactic]
+id = "TA0003"
+name = "Persistence"
+reference = "https://attack.mitre.org/tactics/TA0003/"
+

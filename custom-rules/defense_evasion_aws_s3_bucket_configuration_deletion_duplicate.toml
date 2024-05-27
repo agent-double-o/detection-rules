@@ -1,0 +1,73 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = "Identifies the deletion of various Amazon Simple Storage Service (S3) bucket configuration components."
+enabled = true
+exceptions_list = []
+false_positives = [
+    """
+    Bucket components may be deleted by a system or network administrator. Verify whether the user identity, user agent,
+    and/or hostname should be making changes in your environment. Bucket component deletions by unfamiliar users or
+    hosts should be investigated. If known behavior is causing false positives, it can be exempted from the rule.
+    """,
+]
+from = "now-60m"
+index = ["filebeat-*", "logs-aws.cloudtrail-*", "logs-logen-*"]
+interval = "10m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "AWS S3 Bucket Configuration Deletion [Duplicate]"
+note = ""
+references = [
+    "https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteBucketPolicy.html",
+    "https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteBucketReplication.html",
+    "https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteBucketCors.html",
+    "https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteBucketEncryption.html",
+    "https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteBucketLifecycle.html",
+]
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "9cec0eaf-34fa-485c-8953-54c0e0870399"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = [
+    "Domain: Cloud",
+    "Data Source: AWS",
+    "Data Source: Amazon Web Services",
+    "Use Case: Asset Visibility",
+    "Tactic: Defense Evasion",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.dataset:aws.cloudtrail and event.provider:s3.amazonaws.com and
+  event.action:(DeleteBucketPolicy or DeleteBucketReplication or DeleteBucketCors or
+                DeleteBucketEncryption or DeleteBucketLifecycle)
+  and event.outcome:success
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1070"
+name = "Indicator Removal"
+reference = "https://attack.mitre.org/techniques/T1070/"
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

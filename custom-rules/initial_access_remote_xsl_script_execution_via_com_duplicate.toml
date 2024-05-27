@@ -1,0 +1,88 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies the execution of a hosted XSL script using the Microsoft.XMLDOM COM interface via Microsoft Office processes.
+This behavior may indicate adversarial activity to execute malicious JScript or VBScript on the system.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["logs-endpoint.events.process-*", "logs-endpoint.events.library-*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Remote XSL Script Execution via COM [Duplicate]"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "bf2ac60e-f9a5-438f-a5c5-e1b7654b5973"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Windows",
+    "Use Case: Threat Detection",
+    "Tactic: Initial Access",
+    "Tactic: Defense Evasion",
+    "Data Source: Elastic Defend",
+]
+to = "now"
+type = "eql"
+
+query = '''
+sequence with maxspan=1m
+ [library where host.os.type == "windows" and dll.name : "msxml3.dll" and
+  process.name : ("winword.exe", "excel.exe", "powerpnt.exe", "mspub.exe")] by process.entity_id
+ [process where host.os.type == "windows" and event.action == "start" and
+  process.parent.name : ("winword.exe", "excel.exe", "powerpnt.exe", "mspub.exe") and 
+  not process.executable :
+        ("?:\\Windows\\System32\\WerFault.exe",
+         "?:\\Windows\\SysWoW64\\WerFault.exe",
+         "?:\\windows\\splwow64.exe",
+         "?:\\Windows\\System32\\conhost.exe",
+         "?:\\Program Files\\*.exe",
+         "?:\\Program Files (x86)\\*exe")] by process.parent.entity_id
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1566"
+name = "Phishing"
+reference = "https://attack.mitre.org/techniques/T1566/"
+[[rule.threat.technique.subtechnique]]
+id = "T1566.002"
+name = "Spearphishing Link"
+reference = "https://attack.mitre.org/techniques/T1566/002/"
+
+
+
+[rule.threat.tactic]
+id = "TA0001"
+name = "Initial Access"
+reference = "https://attack.mitre.org/tactics/TA0001/"
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1220"
+name = "XSL Script Processing"
+reference = "https://attack.mitre.org/techniques/T1220/"
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

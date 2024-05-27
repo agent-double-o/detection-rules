@@ -1,0 +1,72 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies the use of sqlite3 to directly modify the Transparency, Consent, and Control (TCC) SQLite database. This may
+indicate an attempt to bypass macOS privacy controls, including access to sensitive resources like the system camera,
+microphone, address book, and calendar.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["logs-endpoint.events.*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Potential Privacy Control Bypass via TCCDB Modification [Duplicate]"
+references = [
+    "https://applehelpwriter.com/2016/08/29/discovering-how-dropbox-hacks-your-mac/",
+    "https://github.com/bp88/JSS-Scripts/blob/master/TCC.db%20Modifier.sh",
+    "https://medium.com/@mattshockl/cve-2020-9934-bypassing-the-os-x-transparency-consent-and-control-tcc-framework-for-4e14806f1de8",
+]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "86510d55-0348-400a-b9b3-f717de795c92"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: macOS",
+    "Use Case: Threat Detection",
+    "Tactic: Defense Evasion",
+    "Data Source: Elastic Defend",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+process where host.os.type == "macos" and event.type in ("start", "process_started") and process.name : "sqlite*" and
+ process.args : "/*/Application Support/com.apple.TCC/TCC.db" and
+ not process.parent.executable : "/Library/Bitdefender/AVP/product/bin/*"
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1562"
+name = "Impair Defenses"
+reference = "https://attack.mitre.org/techniques/T1562/"
+[[rule.threat.technique.subtechnique]]
+id = "T1562.001"
+name = "Disable or Modify Tools"
+reference = "https://attack.mitre.org/techniques/T1562/001/"
+
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

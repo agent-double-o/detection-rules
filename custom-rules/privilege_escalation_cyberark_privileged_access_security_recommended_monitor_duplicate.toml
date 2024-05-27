@@ -1,0 +1,77 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies the occurrence of a CyberArk Privileged Access Security (PAS) non-error level audit event which is
+recommended for monitoring by the vendor. The event.code correlates to the CyberArk Vault Audit Action Code.
+"""
+enabled = true
+exceptions_list = []
+false_positives = ["To tune this rule, add exceptions to exclude any event.code which should not trigger this rule."]
+from = "now-30m"
+index = ["filebeat-*", "logs-cyberarkpas.audit*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "CyberArk Privileged Access Security Recommended Monitor [Duplicate]"
+note = """## Triage and analysis
+
+This is a promotion rule for CyberArk events, which the vendor recommends should be monitored.
+Consult vendor documentation on interpreting specific events."""
+references = [
+    "https://docs.cyberark.com/Product-Doc/OnlineHelp/PAS/Latest/en/Content/PASREF/Vault%20Audit%20Action%20Codes.htm?tocpath=Administration%7CReferences%7C_____3#RecommendedActionCodesforMonitoring",
+]
+related_integrations = []
+required_fields = []
+risk_score = 73
+risk_score_mapping = []
+rule_id = "5998f21f-91a3-49fb-b854-007a4840a799"
+rule_name_override = "event.action"
+setup = ""
+severity = "high"
+severity_mapping = []
+tags = [
+    "Data Source: CyberArk PAS",
+    "Use Case: Log Auditing",
+    "Use Case: Threat Detection",
+    "Tactic: Privilege Escalation",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.dataset:cyberarkpas.audit and
+  event.code:(4 or 22 or 24 or 31 or 38 or 57 or 60 or 130 or 295 or 300 or 302 or
+              308 or 319 or 344 or 346 or 359 or 361 or 378 or 380 or 411) and
+  not event.type:error
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1078"
+name = "Valid Accounts"
+reference = "https://attack.mitre.org/techniques/T1078/"
+
+
+[rule.threat.tactic]
+id = "TA0004"
+name = "Privilege Escalation"
+reference = "https://attack.mitre.org/tactics/TA0004/"
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+technique = []
+
+[rule.threat.tactic]
+id = "TA0001"
+name = "Initial Access"
+reference = "https://attack.mitre.org/tactics/TA0001/"
+

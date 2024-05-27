@@ -1,0 +1,93 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Detects known PowerShell offensive tooling author's name in PowerShell scripts. Attackers commonly use out-of-the-box
+offensive tools without modifying the code, which may still contain the author artifacts. This rule identifies common
+author handles found in popular PowerShell scripts used for red team exercises.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["winlogbeat-*", "logs-windows.powershell*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "Potential PowerShell HackTool Script by Author [Duplicate]"
+references = [
+    "https://github.com/atc-project/atc-data/blob/master/docs/Logging_Policies/LP_0109_windows_powershell_script_block_log.md",
+]
+related_integrations = []
+required_fields = []
+risk_score = 73
+risk_score_mapping = []
+rule_id = "823bbf95-f5fa-4463-9fcd-7ad7732cb582"
+setup = ""
+severity = "high"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Windows",
+    "Use Case: Threat Detection",
+    "Tactic: Execution",
+    "Data Source: PowerShell Logs",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+host.os.type:windows and event.category:process and
+  powershell.file.script_block_text : (
+      "mattifestation" or "JosephBialek" or
+      "harmj0y" or "ukstufus" or
+      "SecureThisShit" or "Matthew Graeber" or
+      "secabstraction" or "mgeeky" or
+      "oddvarmoe" or "am0nsec" or
+      "obscuresec" or "sixdub" or
+      "darkoperator" or "funoverip" or
+      "rvrsh3ll" or "kevin_robertson" or
+      "dafthack" or "r4wd3r" or
+      "danielhbohannon" or "OneLogicalMyth" or
+      "cobbr_io" or "xorrior" or
+      "PetrMedonos" or "citronneur" or
+      "eladshamir" or "RastaMouse" or
+      "enigma0x3" or "FuzzySec" or
+      "424f424f" or "jaredhaight" or
+      "fullmetalcache" or "Hubbl3" or
+      "curi0usJack" or "Cx01N" or
+      "itm4n" or "nurfed1" or
+      "cfalta" or "Scott Sutherland" or
+      "_nullbind" or "_tmenochet" or
+      "Boe Prox" or "jaredcatkinson" or
+      "ChrisTruncer" or "monoxgas" or
+      "TheRealWover" or "splinter_code"
+  )
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1059"
+name = "Command and Scripting Interpreter"
+reference = "https://attack.mitre.org/techniques/T1059/"
+[[rule.threat.technique.subtechnique]]
+id = "T1059.001"
+name = "PowerShell"
+reference = "https://attack.mitre.org/techniques/T1059/001/"
+
+
+
+[rule.threat.tactic]
+id = "TA0002"
+name = "Execution"
+reference = "https://attack.mitre.org/tactics/TA0002/"
+

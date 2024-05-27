@@ -1,0 +1,67 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Monitors for the generation of a passwd password entry via openssl, followed by a file write activity on the
+"/etc/passwd" file. The "/etc/passwd" file in Linux stores user account information, including usernames, user IDs,
+group IDs, home directories, and default shell paths. Attackers may exploit a misconfiguration in the "/etc/passwd" file
+permissions or other privileges to add a new entry to the "/etc/passwd" file with root permissions, and leverage this
+new user account to login as root.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["logs-endpoint.events.*", "logs-auditd_manager.auditd-*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Suspicious Passwd File Event Action [Duplicate]"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "92e62f0b-7a2a-4f61-b0d1-8fc15ca0ef25"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Data Source: Auditd Manager",
+    "Domain: Endpoint",
+    "OS: Linux",
+    "Use Case: Threat Detection",
+    "Tactic: Privilege Escalation",
+    "Data Source: Elastic Defend",
+]
+to = "now"
+type = "eql"
+
+query = '''
+sequence by host.id, process.parent.pid with maxspan=1m
+  [process where host.os.type == "linux" and event.type == "start" and event.action == "exec" and
+   process.name == "openssl" and process.args == "passwd" and user.id != "0"]
+  [file where host.os.type == "linux" and file.path == "/etc/passwd" and process.parent.pid != 1 and
+   not auditd.data.a2 == "80000" and event.outcome == "success" and user.id != "0"]
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1068"
+name = "Exploitation for Privilege Escalation"
+reference = "https://attack.mitre.org/techniques/T1068/"
+
+
+[rule.threat.tactic]
+id = "TA0004"
+name = "Privilege Escalation"
+reference = "https://attack.mitre.org/tactics/TA0004/"
+

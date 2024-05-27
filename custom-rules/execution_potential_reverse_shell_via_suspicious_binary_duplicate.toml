@@ -1,0 +1,97 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+This detection rule detects the creation of a shell through a chain consisting of the execution of a suspicious binary
+(located in a commonly abused location or executed manually) followed by a network event and ending with a shell being
+spawned. Stageless reverse tcp shells display this behaviour. Attackers may spawn reverse shells to establish
+persistence onto a target system.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["logs-endpoint.events.*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Potential Reverse Shell via Suspicious Binary [Duplicate]"
+references = [
+    "https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Reverse%20Shell%20Cheatsheet.md",
+]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "dbfb0a77-0db5-48ed-8cca-ec70ac8b5203"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Linux",
+    "Use Case: Threat Detection",
+    "Tactic: Execution",
+    "Data Source: Elastic Defend",
+]
+to = "now"
+type = "eql"
+
+query = '''
+sequence by host.id, process.entity_id with maxspan=1s
+[ process where host.os.type == "linux" and event.type == "start" and event.action == "exec" and
+  process.executable : (
+  "./*", "/tmp/*", "/var/tmp/*", "/var/www/*", "/dev/shm/*", "/etc/init.d/*", "/etc/rc*.d/*",
+  "/etc/crontab", "/etc/cron.*", "/etc/update-motd.d/*", "/usr/lib/update-notifier/*",
+  "/boot/*", "/srv/*", "/run/*", "/root/*", "/etc/rc.local"
+   ) and
+  process.parent.name : ("bash", "dash", "sh", "tcsh", "csh", "zsh", "ksh", "fish") and not
+  process.name : ("curl", "wget", "ping", "apt", "dpkg", "yum", "rpm", "dnf", "dockerd") ]
+[ network where host.os.type == "linux" and event.type == "start" and event.action in ("connection_attempted", "connection_accepted") and
+  process.executable : (
+  "./*", "/tmp/*", "/var/tmp/*", "/var/www/*", "/dev/shm/*", "/etc/init.d/*", "/etc/rc*.d/*",
+  "/etc/crontab", "/etc/cron.*", "/etc/update-motd.d/*", "/usr/lib/update-notifier/*",
+  "/boot/*", "/srv/*", "/run/*", "/root/*", "/etc/rc.local"
+   ) and destination.ip != null and destination.ip != "127.0.0.1" and destination.ip != "::1" ]
+[ process where host.os.type == "linux" and event.type == "start" and event.action == "exec" and 
+  process.name : ("bash", "dash", "sh", "tcsh", "csh", "zsh", "ksh", "fish") and 
+  process.parent.name : ("bash", "dash", "sh", "tcsh", "csh", "zsh", "ksh", "fish") ]
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1059"
+name = "Command and Scripting Interpreter"
+reference = "https://attack.mitre.org/techniques/T1059/"
+[[rule.threat.technique.subtechnique]]
+id = "T1059.004"
+name = "Unix Shell"
+reference = "https://attack.mitre.org/techniques/T1059/004/"
+
+
+
+[rule.threat.tactic]
+id = "TA0002"
+name = "Execution"
+reference = "https://attack.mitre.org/tactics/TA0002/"
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1071"
+name = "Application Layer Protocol"
+reference = "https://attack.mitre.org/techniques/T1071/"
+
+
+[rule.threat.tactic]
+id = "TA0011"
+name = "Command and Control"
+reference = "https://attack.mitre.org/tactics/TA0011/"
+

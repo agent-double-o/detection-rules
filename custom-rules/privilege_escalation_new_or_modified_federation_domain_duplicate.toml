@@ -1,0 +1,74 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Austin Songer"]
+description = """
+Identifies a new or modified federation domain, which can be used to create a trust between O365 and an external
+identity provider.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-6m"
+index = ["filebeat-*", "logs-o365*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "New or Modified Federation Domain [Duplicate]"
+note = ""
+references = [
+    "https://docs.microsoft.com/en-us/powershell/module/exchange/remove-accepteddomain?view=exchange-ps",
+    "https://docs.microsoft.com/en-us/powershell/module/exchange/remove-federateddomain?view=exchange-ps",
+    "https://docs.microsoft.com/en-us/powershell/module/exchange/new-accepteddomain?view=exchange-ps",
+    "https://docs.microsoft.com/en-us/powershell/module/exchange/add-federateddomain?view=exchange-ps",
+    "https://docs.microsoft.com/en-us/powershell/module/exchange/set-accepteddomain?view=exchange-ps",
+    "https://docs.microsoft.com/en-us/powershell/module/msonline/set-msoldomainfederationsettings?view=azureadps-1.0",
+]
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "cf701c6f-9ffd-40a7-aa4e-d3f98dfff797"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = [
+    "Domain: Cloud",
+    "Data Source: Microsoft 365",
+    "Use Case: Identity and Access Audit",
+    "Tactic: Privilege Escalation",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.dataset:o365.audit and event.provider:Exchange and event.category:web and event.action:("Set-AcceptedDomain" or
+"Set-MsolDomainFederationSettings" or "Add-FederatedDomain" or "New-AcceptedDomain" or "Remove-AcceptedDomain" or "Remove-FederatedDomain") and
+event.outcome:success
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1484"
+name = "Domain Policy Modification"
+reference = "https://attack.mitre.org/techniques/T1484/"
+[[rule.threat.technique.subtechnique]]
+id = "T1484.002"
+name = "Domain Trust Modification"
+reference = "https://attack.mitre.org/techniques/T1484/002/"
+
+
+
+[rule.threat.tactic]
+id = "TA0004"
+name = "Privilege Escalation"
+reference = "https://attack.mitre.org/tactics/TA0004/"
+

@@ -1,0 +1,76 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies interactive logon attempt with alternate credentials and by an unusual process. Adversaries may create a new
+token to escalate privileges and bypass access controls.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["winlogbeat-*", "logs-system.*", "logs-windows.*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Interactive Logon by an Unusual Process [Duplicate]"
+references = ["https://attack.mitre.org/techniques/T1134/002/"]
+related_integrations = []
+required_fields = []
+risk_score = 73
+risk_score_mapping = []
+rule_id = "c408a98f-237d-4544-b735-31bbd4e2de88"
+setup = ""
+severity = "high"
+severity_mapping = []
+tags = ["Domain: Endpoint", "OS: Windows", "Use Case: Threat Detection", "Tactic: Privilege Escalation"]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+authentication where 
+ host.os.type : "windows" and winlog.event_data.LogonProcessName : "Advapi*" and 
+ winlog.logon.type == "Interactive" and winlog.event_data.SubjectUserSid : ("S-1-5-21*", "S-1-12-*") and 
+ winlog.event_data.TargetUserSid : ("S-1-5-21*", "S-1-12-*")  and process.executable : "C:\\*" and 
+ not startswith~(winlog.event_data.SubjectUserSid, winlog.event_data.TargetUserSid) and 
+ not process.executable : 
+            ("?:\\Windows\\System32\\winlogon.exe", 
+             "?:\\Windows\\System32\\wininit.exe", 
+             "?:\\Program Files\\*.exe", 
+             "?:\\Program Files (x86)\\*.exe", 
+             "?:\\Windows\\SysWOW64\\inetsrv\\w3wp.exe", 
+             "?:\\Windows\\System32\\inetsrv\\w3wp.exe", 
+             "?:\\Windows\\SysWOW64\\msiexec.exe")
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1134"
+name = "Access Token Manipulation"
+reference = "https://attack.mitre.org/techniques/T1134/"
+[[rule.threat.technique.subtechnique]]
+id = "T1134.002"
+name = "Create Process with Token"
+reference = "https://attack.mitre.org/techniques/T1134/002/"
+
+[[rule.threat.technique.subtechnique]]
+id = "T1134.003"
+name = "Make and Impersonate Token"
+reference = "https://attack.mitre.org/techniques/T1134/003/"
+
+
+
+[rule.threat.tactic]
+id = "TA0004"
+name = "Privilege Escalation"
+reference = "https://attack.mitre.org/tactics/TA0004/"
+

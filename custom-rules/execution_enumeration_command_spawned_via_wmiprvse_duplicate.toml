@@ -1,0 +1,136 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies native Windows host and network enumeration commands spawned by the Windows Management Instrumentation
+Provider Service (WMIPrvSE).
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = [
+    "winlogbeat-*",
+    "logs-endpoint.events.process-*",
+    "logs-windows.*",
+    "endgame-*",
+    "logs-system.security*",
+    "logs-logen-*",
+]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Enumeration Command Spawned via WMIPrvSE [Duplicate]"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "91e96dba-0dc1-4699-b0c6-0473e54cb402"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Windows",
+    "Use Case: Threat Detection",
+    "Tactic: Execution",
+    "Data Source: Elastic Endgame",
+    "Data Source: Elastic Defend",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+process where host.os.type == "windows" and event.type == "start" and process.command_line != null and 
+  process.name:
+  (
+    "arp.exe",
+    "dsquery.exe",
+    "dsget.exe",
+    "gpresult.exe",
+    "hostname.exe",
+    "ipconfig.exe",
+    "nbtstat.exe",
+    "net.exe",
+    "net1.exe",
+    "netsh.exe",
+    "netstat.exe",
+    "nltest.exe",
+    "ping.exe",
+    "qprocess.exe",
+    "quser.exe",
+    "qwinsta.exe",
+    "reg.exe",
+    "sc.exe",
+    "systeminfo.exe",
+    "tasklist.exe",
+    "tracert.exe",
+    "whoami.exe"
+  ) and
+  process.parent.name:"wmiprvse.exe" and 
+  not (
+    process.name : "sc.exe" and process.args : "RemoteRegistry" and process.args : "start=" and 
+    process.args : ("demand", "disabled")
+  ) and
+  not process.args : "tenable_mw_scan"
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1047"
+name = "Windows Management Instrumentation"
+reference = "https://attack.mitre.org/techniques/T1047/"
+
+
+[rule.threat.tactic]
+id = "TA0002"
+name = "Execution"
+reference = "https://attack.mitre.org/tactics/TA0002/"
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1016"
+name = "System Network Configuration Discovery"
+reference = "https://attack.mitre.org/techniques/T1016/"
+[[rule.threat.technique.subtechnique]]
+id = "T1016.001"
+name = "Internet Connection Discovery"
+reference = "https://attack.mitre.org/techniques/T1016/001/"
+
+
+[[rule.threat.technique]]
+id = "T1018"
+name = "Remote System Discovery"
+reference = "https://attack.mitre.org/techniques/T1018/"
+
+[[rule.threat.technique]]
+id = "T1057"
+name = "Process Discovery"
+reference = "https://attack.mitre.org/techniques/T1057/"
+
+[[rule.threat.technique]]
+id = "T1087"
+name = "Account Discovery"
+reference = "https://attack.mitre.org/techniques/T1087/"
+
+[[rule.threat.technique]]
+id = "T1518"
+name = "Software Discovery"
+reference = "https://attack.mitre.org/techniques/T1518/"
+
+
+[rule.threat.tactic]
+id = "TA0007"
+name = "Discovery"
+reference = "https://attack.mitre.org/tactics/TA0007/"
+

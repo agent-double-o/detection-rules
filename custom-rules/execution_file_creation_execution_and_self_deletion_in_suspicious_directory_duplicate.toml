@@ -1,0 +1,74 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+This rule monitors for the creation of a file, followed by its execution and self-deletion in a short timespan within a
+directory often used for malicious purposes by threat actors. This behavior is often used by malware to execute
+malicious code and delete itself to hide its tracks.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["logs-endpoint.events.*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "File Creation, Execution and Self-Deletion in Suspicious Directory [Duplicate]"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "7a1918a1-e215-4fb4-bbd4-41d633ca8dc5"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Linux",
+    "Use Case: Threat Detection",
+    "Tactic: Execution",
+    "Data Source: Elastic Defend",
+]
+to = "now"
+type = "eql"
+
+query = '''
+sequence by host.id, user.id with maxspan=1m
+  [file where host.os.type == "linux" and event.action == "creation" and 
+   process.name in ("curl", "wget", "fetch", "ftp", "sftp", "scp", "rsync", "ld") and 
+   file.path : ("/dev/shm/*", "/run/shm/*", "/tmp/*", "/var/tmp/*",
+     "/run/*", "/var/run/*", "/var/www/*", "/proc/*/fd/*")] by file.name
+  [process where host.os.type == "linux" and event.type == "start" and event.action == "exec" and 
+   process.parent.name in ("bash", "dash", "ash", "sh", "tcsh", "csh", "zsh", "ksh", "fish")] by process.name
+  [file where host.os.type == "linux" and event.action == "deletion" and not process.name in ("rm", "ld") and 
+   file.path : ("/dev/shm/*", "/run/shm/*", "/tmp/*", "/var/tmp/*",
+     "/run/*", "/var/run/*", "/var/www/*", "/proc/*/fd/*")] by file.name
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1059"
+name = "Command and Scripting Interpreter"
+reference = "https://attack.mitre.org/techniques/T1059/"
+[[rule.threat.technique.subtechnique]]
+id = "T1059.004"
+name = "Unix Shell"
+reference = "https://attack.mitre.org/techniques/T1059/004/"
+
+
+
+[rule.threat.tactic]
+id = "TA0002"
+name = "Execution"
+reference = "https://attack.mitre.org/tactics/TA0002/"
+

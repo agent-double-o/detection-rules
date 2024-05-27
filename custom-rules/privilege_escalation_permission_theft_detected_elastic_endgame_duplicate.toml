@@ -1,0 +1,54 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Elastic Endgame detected Permission Theft. Click the Elastic Endgame icon in the event.module column or the link in the
+rule.reference column for additional information.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-15m"
+index = ["endgame-*", "logs-logen-*"]
+interval = "10m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 10000
+name = "Permission Theft - Detected - Elastic Endgame [Duplicate]"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 73
+risk_score_mapping = []
+rule_id = "b6dcf1de-e333-4238-a8a8-68840bd907a8"
+setup = ""
+severity = "high"
+severity_mapping = []
+tags = ["Data Source: Elastic Endgame", "Use Case: Threat Detection", "Tactic: Privilege Escalation"]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.kind:alert and event.module:endgame and endgame.metadata.type:detection and (event.action:token_protection_event or endgame.event_subtype_full:token_protection_event)
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1134"
+name = "Access Token Manipulation"
+reference = "https://attack.mitre.org/techniques/T1134/"
+
+
+[rule.threat.tactic]
+id = "TA0004"
+name = "Privilege Escalation"
+reference = "https://attack.mitre.org/tactics/TA0004/"
+
