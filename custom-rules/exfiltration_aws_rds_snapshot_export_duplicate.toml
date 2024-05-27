@@ -1,0 +1,60 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic", "Austin Songer"]
+description = "Identifies the export of an Amazon Relational Database Service (RDS) Aurora database snapshot."
+enabled = true
+exceptions_list = []
+false_positives = [
+    """
+    Exporting snapshots may be done by a system or network administrator. Verify whether the user identity, user agent,
+    and/or hostname should be making changes in your environment. Snapshot exports from unfamiliar users or hosts should
+    be investigated. If known behavior is causing false positives, it can be exempted from the rule.
+    """,
+]
+from = "now-60m"
+index = ["filebeat-*", "logs-aws.cloudtrail-*", "logs-logen-*"]
+interval = "10m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "AWS RDS Snapshot Export [Duplicate]"
+note = ""
+references = ["https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_StartExportTask.html"]
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "011d7766-7121-45cb-bb9c-23f43559226f"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = [
+    "Domain: Cloud",
+    "Data Source: AWS",
+    "Data Source: Amazon Web Services",
+    "Use Case: Asset Visibility",
+    "Tactic: Exfiltration",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.dataset:aws.cloudtrail and event.provider:rds.amazonaws.com and event.action:StartExportTask and event.outcome:success
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+technique = []
+
+[rule.threat.tactic]
+id = "TA0010"
+name = "Exfiltration"
+reference = "https://attack.mitre.org/tactics/TA0010/"
+

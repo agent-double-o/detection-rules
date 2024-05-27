@@ -1,0 +1,71 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies when a non-interactive terminal (tty) is being upgraded to a fully interactive shell. Attackers may upgrade a
+simple reverse shell to a fully interactive tty after obtaining initial access to a host, in order to obtain a more
+stable connection.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["logs-endpoint.events.*", "endgame-*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Potential Upgrade of Non-interactive Shell [Duplicate]"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "0ad3f7b8-462c-4aae-b14f-3ae0b13eb54e"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Linux",
+    "Use Case: Threat Detection",
+    "Tactic: Execution",
+    "Data Source: Elastic Endgame",
+    "Data Source: Elastic Defend",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+process where host.os.type == "linux" and event.type == "start" and event.action in ("exec", "exec_event") and (
+  (process.name == "stty" and process.args == "raw" and process.args == "-echo" and process.args_count >= 3) or
+  (process.name == "script" and process.args in ("-qc", "-c") and process.args == "/dev/null" and 
+   process.args_count == 4)
+)
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1059"
+name = "Command and Scripting Interpreter"
+reference = "https://attack.mitre.org/techniques/T1059/"
+[[rule.threat.technique.subtechnique]]
+id = "T1059.004"
+name = "Unix Shell"
+reference = "https://attack.mitre.org/techniques/T1059/004/"
+
+
+
+[rule.threat.tactic]
+id = "TA0002"
+name = "Execution"
+reference = "https://attack.mitre.org/tactics/TA0002/"
+

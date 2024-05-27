@@ -1,0 +1,96 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Detects attempts to maintain persistence by creating registry keys using AppCert DLLs. AppCert DLLs are loaded by every
+process using the common API functions to create processes.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = [
+    "winlogbeat-*",
+    "logs-endpoint.events.registry-*",
+    "logs-windows.sysmon_operational-*",
+    "endgame-*",
+    "logs-logen-*",
+]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Registry Persistence via AppCert DLL [Duplicate]"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "bf971fb0-3c99-437b-8244-d713d6d679bd"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Windows",
+    "Use Case: Threat Detection",
+    "Tactic: Persistence",
+    "Tactic: Privilege Escalation",
+    "Data Source: Elastic Endgame",
+    "Data Source: Elastic Defend",
+    "Data Source: Sysmon",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+registry where host.os.type == "windows" and
+/* uncomment once stable length(bytes_written_string) > 0 and */
+  registry.path : (
+    "HKLM\\SYSTEM\\*ControlSet*\\Control\\Session Manager\\AppCertDLLs\\*",
+    "\\REGISTRY\\MACHINE\\SYSTEM\\*ControlSet*\\Control\\Session Manager\\AppCertDLLs\\*"
+  )
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1546"
+name = "Event Triggered Execution"
+reference = "https://attack.mitre.org/techniques/T1546/"
+[[rule.threat.technique.subtechnique]]
+id = "T1546.009"
+name = "AppCert DLLs"
+reference = "https://attack.mitre.org/techniques/T1546/009/"
+
+
+
+[rule.threat.tactic]
+id = "TA0003"
+name = "Persistence"
+reference = "https://attack.mitre.org/tactics/TA0003/"
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1546"
+name = "Event Triggered Execution"
+reference = "https://attack.mitre.org/techniques/T1546/"
+[[rule.threat.technique.subtechnique]]
+id = "T1546.009"
+name = "AppCert DLLs"
+reference = "https://attack.mitre.org/techniques/T1546/009/"
+
+
+
+[rule.threat.tactic]
+id = "TA0004"
+name = "Privilege Escalation"
+reference = "https://attack.mitre.org/tactics/TA0004/"
+

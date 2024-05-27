@@ -1,0 +1,54 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies when an Azure Automation webhook is created. Azure Automation runbooks can be configured to execute via a
+webhook. A webhook uses a custom URL passed to Azure Automation along with a data payload specific to the runbook. An
+adversary may create a webhook in order to trigger a runbook that contains malicious code.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-25m"
+index = ["filebeat-*", "logs-azure*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "Azure Automation Webhook Created [Duplicate]"
+note = ""
+references = [
+    "https://powerzure.readthedocs.io/en/latest/Functions/operational.html#create-backdoor",
+    "https://github.com/hausec/PowerZure",
+    "https://posts.specterops.io/attacking-azure-azure-ad-and-introducing-powerzure-ca70b330511a",
+    "https://www.ciraltos.com/webhooks-and-azure-automation-runbooks/",
+]
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "11301c0b-054f-44b7-a0cc-eb506afe0674"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = ["Domain: Cloud", "Data Source: Azure", "Use Case: Configuration Audit", "Tactic: Persistence"]
+threat = []
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.dataset:azure.activitylogs and
+  azure.activitylogs.operation_name:
+    (
+      "MICROSOFT.AUTOMATION/AUTOMATIONACCOUNTS/WEBHOOKS/ACTION" or
+      "MICROSOFT.AUTOMATION/AUTOMATIONACCOUNTS/WEBHOOKS/WRITE"
+    ) and
+  event.outcome:(Success or success)
+'''
+

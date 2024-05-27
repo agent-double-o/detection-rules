@@ -1,0 +1,81 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Both ~/.bash_profile and ~/.bashrc are files containing shell commands that are run when Bash is invoked. These files
+are executed in a user's context, either interactively or non-interactively, when a user logs in so that their
+environment is set correctly. Adversaries may abuse this to establish persistence by executing malicious content
+triggered by a user’s shell.
+"""
+enabled = true
+exceptions_list = []
+false_positives = ["Changes to the Shell Profile tend to be noisy, a tuning per your environment will be required."]
+from = "now-9m"
+index = ["logs-endpoint.events.*", "auditbeat-*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "Bash Shell Profile Modification [Duplicate]"
+references = ["https://www.anomali.com/blog/pulling-linux-rabbit-rabbot-malware-out-of-a-hat"]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "41d4b4dd-1787-42da-b5d8-5c8563191e6a"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: macOS",
+    "OS: Linux",
+    "Use Case: Threat Detection",
+    "Tactic: Persistence",
+    "Data Source: Elastic Defend",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.category:file and event.type:change and
+  process.name:(* and not (sudo or vim or zsh or env or nano or bash or Terminal or xpcproxy or login or cat or cp or
+  launchctl or java or dnf or tailwatchd or ldconfig or yum or semodule or cpanellogd or dockerd or authselect or chmod or
+  dnf-automatic or git or dpkg or platform-python)) and
+  not process.executable:(/Applications/* or /private/var/folders/* or /usr/local/* or /opt/saltstack/salt/bin/*) and
+  file.path:(/private/etc/rc.local or
+             /etc/rc.local or
+             /home/*/.profile or
+             /home/*/.profile1 or
+             /home/*/.bash_profile or
+             /home/*/.bash_profile1 or
+             /home/*/.bashrc or
+             /Users/*/.bash_profile or
+             /Users/*/.zshenv)
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1546"
+name = "Event Triggered Execution"
+reference = "https://attack.mitre.org/techniques/T1546/"
+[[rule.threat.technique.subtechnique]]
+id = "T1546.004"
+name = "Unix Shell Configuration Modification"
+reference = "https://attack.mitre.org/techniques/T1546/004/"
+
+
+
+[rule.threat.tactic]
+id = "TA0003"
+name = "Persistence"
+reference = "https://attack.mitre.org/tactics/TA0003/"
+

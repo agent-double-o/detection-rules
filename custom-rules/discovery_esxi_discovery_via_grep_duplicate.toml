@@ -1,0 +1,69 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies instances where a process named 'grep', 'egrep', or 'pgrep' is started on a Linux system with arguments
+related to virtual machine (VM) files, such as "vmdk", "vmx", "vmxf", "vmsd", "vmsn", "vswp", "vmss", "nvram", or
+"vmem". These file extensions are associated with VM-related file formats, and their presence in grep command arguments
+may indicate that a threat actor is attempting to search for, analyze, or manipulate VM files on the system.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["logs-endpoint.events.*", "endgame-*", "auditbeat-*", "logs-auditd_manager.auditd-*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "ESXI Discovery via Grep [Duplicate]"
+references = [
+    "https://www.bleepingcomputer.com/news/security/massive-esxiargs-ransomware-attack-targets-vmware-esxi-servers-worldwide/",
+]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "8e8e037d-6133-4d44-8204-b397636986cb"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Linux",
+    "Use Case: Threat Detection",
+    "Tactic: Discovery",
+    "Data Source: Elastic Defend",
+    "Data Source: Elastic Endgame",
+    "Data Source: Auditd Manager",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+process where host.os.type == "linux" and event.type == "start" and event.action in ("exec", "exec_event", "executed", "process_started")
+ and process.name in ("grep", "egrep", "pgrep") and process.args in (
+  "vmdk", "vmx", "vmxf", "vmsd", "vmsn", "vswp", "vmss", "nvram", "vmem"
+)
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1518"
+name = "Software Discovery"
+reference = "https://attack.mitre.org/techniques/T1518/"
+
+
+[rule.threat.tactic]
+id = "TA0007"
+name = "Discovery"
+reference = "https://attack.mitre.org/tactics/TA0007/"
+

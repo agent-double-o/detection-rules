@@ -1,0 +1,51 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = "Detects the deletion of a GitHub app either from a repo or an organization."
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["logs-github.audit-*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "GitHub App Deleted [Duplicate]"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "a63d8eaf-bb0e-451e-bc15-53d03369506e"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = ["Domain: Cloud", "Use Case: Threat Detection", "Tactic: Execution", "Data Source: Github"]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+configuration where event.dataset == "github.audit" and github.category == "integration_installation" and event.type == "deletion"
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1648"
+name = "Serverless Execution"
+reference = "https://attack.mitre.org/techniques/T1648/"
+
+
+[rule.threat.tactic]
+id = "TA0002"
+name = "Execution"
+reference = "https://attack.mitre.org/tactics/TA0002/"
+

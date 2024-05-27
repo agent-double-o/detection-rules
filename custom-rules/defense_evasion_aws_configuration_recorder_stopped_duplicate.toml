@@ -1,0 +1,66 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = "Identifies an AWS configuration change to stop recording a designated set of resources."
+enabled = true
+exceptions_list = []
+false_positives = [
+    """
+    Verify whether the user identity, user agent, and/or hostname should be making changes in your environment.
+    Recording changes from unfamiliar users or hosts should be investigated. If known behavior is causing false
+    positives, it can be exempted from the rule.
+    """,
+]
+from = "now-60m"
+index = ["filebeat-*", "logs-aws.cloudtrail-*", "logs-logen-*"]
+interval = "10m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "AWS Configuration Recorder Stopped [Duplicate]"
+note = ""
+references = [
+    "https://awscli.amazonaws.com/v2/documentation/api/latest/reference/configservice/stop-configuration-recorder.html",
+    "https://docs.aws.amazon.com/config/latest/APIReference/API_StopConfigurationRecorder.html",
+]
+related_integrations = []
+required_fields = []
+risk_score = 73
+risk_score_mapping = []
+rule_id = "fbeb3830-2574-49ee-990d-428b9b4133a2"
+setup = ""
+severity = "high"
+severity_mapping = []
+tags = ["Domain: Cloud", "Data Source: AWS", "Data Source: Amazon Web Services", "Tactic: Defense Evasion"]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.dataset:aws.cloudtrail and event.provider:config.amazonaws.com and event.action:StopConfigurationRecorder and event.outcome:success
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1562"
+name = "Impair Defenses"
+reference = "https://attack.mitre.org/techniques/T1562/"
+[[rule.threat.technique.subtechnique]]
+id = "T1562.001"
+name = "Disable or Modify Tools"
+reference = "https://attack.mitre.org/techniques/T1562/001/"
+
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

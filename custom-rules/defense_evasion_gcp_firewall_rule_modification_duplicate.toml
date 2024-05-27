@@ -1,0 +1,71 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies when a firewall rule is modified in Google Cloud Platform (GCP) for Virtual Private Cloud (VPC) or App
+Engine. These firewall rules can be modified to allow or deny connections to or from virtual machine (VM) instances or
+specific applications. An adversary may modify an existing firewall rule in order to weaken their target's security
+controls and allow more permissive ingress or egress traffic flows for their benefit.
+"""
+enabled = true
+exceptions_list = []
+false_positives = [
+    """
+    Firewall rules may be modified by system administrators. Verify that the firewall configuration change was expected.
+    Exceptions can be added to this rule to filter expected behavior.
+    """,
+]
+from = "now-6m"
+index = ["filebeat-*", "logs-gcp*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "GCP Firewall Rule Modification [Duplicate]"
+note = ""
+references = [
+    "https://cloud.google.com/vpc/docs/firewalls",
+    "https://cloud.google.com/appengine/docs/standard/python/understanding-firewalls",
+]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "6f7dda46-b628-409f-9b4e-bbf148c10806"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Cloud",
+    "Data Source: GCP",
+    "Data Source: Google Cloud Platform",
+    "Use Case: Configuration Audit",
+    "Tactic: Defense Evasion",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.dataset:gcp.audit and event.action:(*.compute.firewalls.patch or google.appengine.*.Firewall.Update*Rule)
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1562"
+name = "Impair Defenses"
+reference = "https://attack.mitre.org/techniques/T1562/"
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

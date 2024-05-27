@@ -1,0 +1,72 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies the execution of macOS built-in commands to mount a Server Message Block (SMB) network share. Adversaries may
+use valid accounts to interact with a remote network share using SMB.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["logs-endpoint.events.*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Attempt to Mount SMB Share via Command Line [Duplicate]"
+references = ["https://www.freebsd.org/cgi/man.cgi?mount_smbfs", "https://ss64.com/osx/mount.html"]
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "abd0b74a-1f30-434b-aafd-f35d3142f3a3"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: macOS",
+    "Use Case: Threat Detection",
+    "Tactic: Lateral Movement",
+    "Data Source: Elastic Defend",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+process where host.os.type == "macos" and event.type in ("start", "process_started") and
+  (
+    process.name : "mount_smbfs" or
+    (process.name : "open" and process.args : "smb://*") or
+    (process.name : "mount" and process.args : "smbfs") or
+    (process.name : "osascript" and process.command_line : "osascript*mount volume*smb://*")
+  ) and
+  not process.parent.executable : "/Applications/Google Drive.app/Contents/MacOS/Google Drive"
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1021"
+name = "Remote Services"
+reference = "https://attack.mitre.org/techniques/T1021/"
+[[rule.threat.technique.subtechnique]]
+id = "T1021.002"
+name = "SMB/Windows Admin Shares"
+reference = "https://attack.mitre.org/techniques/T1021/002/"
+
+
+
+[rule.threat.tactic]
+id = "TA0008"
+name = "Lateral Movement"
+reference = "https://attack.mitre.org/tactics/TA0008/"
+

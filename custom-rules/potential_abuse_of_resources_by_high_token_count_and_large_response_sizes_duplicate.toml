@@ -1,0 +1,63 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Detects potential resource exhaustion or data breach attempts by monitoring for users who consistently generate high
+input token counts, submit numerous requests, and receive large responses. This behavior could indicate an attempt to
+overload the system or extract an unusually large amount of data, possibly revealing sensitive information or causing
+service disruptions.
+"""
+enabled = true
+exceptions_list = []
+false_positives = ["Authorized heavy usage of the system that is business justified and monitored."]
+from = "now-60m"
+interval = "10m"
+language = "esql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Potential Abuse of Resources by High Token Count and Large Response Sizes [Duplicate]"
+references = [
+    "https://atlas.mitre.org/techniques/AML.T0051",
+    "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
+    "https://www.elastic.co/security-labs/elastic-advances-llm-security",
+]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "7ae39e3b-c95d-45c0-b201-7a828c01fb8c"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: LLM",
+    "Data Source: AWS Bedrock",
+    "Data Source: Amazon Web Services",
+    "Data Source: AWS S3",
+    "Use Case: Potential Overload",
+    "Use Case: Resource Exhaustion",
+    "Mitre Atlas: LLM04",
+]
+threat = []
+timestamp_override = "event.ingested"
+to = "now"
+type = "esql"
+
+query = '''
+from logs-aws_bedrock.invocation-*
+| stats max_tokens = max(gen_ai.usage.prompt_tokens),
+         total_requests = count(*),
+         avg_response_size = avg(gen_ai.usage.completion_tokens)
+  by user.id
+// tokens count depends on specific LLM, as is related to how embeddings are generated.
+| where max_tokens > 5000 and total_requests > 10 and avg_response_size > 500
+| eval risk_factor = (max_tokens / 1000) * total_requests * (avg_response_size / 500)
+| where risk_factor > 10
+| sort risk_factor desc
+'''
+

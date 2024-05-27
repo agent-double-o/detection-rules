@@ -1,0 +1,73 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies when an Azure Automation account is created. Azure Automation accounts can be used to automate management
+tasks and orchestrate actions across systems. An adversary may create an Automation account in order to maintain
+persistence in their target's environment.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-25m"
+index = ["filebeat-*", "logs-azure*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "Azure Automation Account Created [Duplicate]"
+note = ""
+references = [
+    "https://powerzure.readthedocs.io/en/latest/Functions/operational.html#create-backdoor",
+    "https://github.com/hausec/PowerZure",
+    "https://posts.specterops.io/attacking-azure-azure-ad-and-introducing-powerzure-ca70b330511a",
+    "https://azure.microsoft.com/en-in/blog/azure-automation-runbook-management/",
+]
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "dab20cd6-4fb8-475b-a6f9-6288bebc6b4f"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = ["Domain: Cloud", "Data Source: Azure", "Use Case: Identity and Access Audit", "Tactic: Persistence"]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.dataset:azure.activitylogs and azure.activitylogs.operation_name:"MICROSOFT.AUTOMATION/AUTOMATIONACCOUNTS/WRITE" and event.outcome:(Success or success)
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1078"
+name = "Valid Accounts"
+reference = "https://attack.mitre.org/techniques/T1078/"
+
+
+[rule.threat.tactic]
+id = "TA0003"
+name = "Persistence"
+reference = "https://attack.mitre.org/tactics/TA0003/"
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1078"
+name = "Valid Accounts"
+reference = "https://attack.mitre.org/techniques/T1078/"
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

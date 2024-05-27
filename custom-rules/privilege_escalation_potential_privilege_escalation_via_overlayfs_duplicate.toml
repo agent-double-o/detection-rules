@@ -1,0 +1,68 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies an attempt to exploit a local privilege escalation (CVE-2023-2640 and CVE-2023-32629) via a flaw in Ubuntu's
+modifications to OverlayFS. These flaws allow the creation of specialized executables, which, upon execution, grant the
+ability to escalate privileges to root on the affected machine.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["logs-endpoint.events.*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Potential Privilege Escalation via OverlayFS [Duplicate]"
+references = [
+    "https://www.wiz.io/blog/ubuntu-overlayfs-vulnerability",
+    "https://twitter.com/liadeliyahu/status/1684841527959273472",
+]
+related_integrations = []
+required_fields = []
+risk_score = 73
+risk_score_mapping = []
+rule_id = "e9a6a406-d9fb-41a0-a27d-2d6164c5b6a5"
+setup = ""
+severity = "high"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Linux",
+    "Use Case: Threat Detection",
+    "Tactic: Privilege Escalation",
+    "Use Case: Vulnerability",
+    "Data Source: Elastic Defend",
+]
+to = "now"
+type = "eql"
+
+query = '''
+sequence by process.parent.entity_id, host.id with maxspan=5s
+  [process where host.os.type == "linux" and event.type == "start" and event.action == "exec" and 
+    process.name == "unshare" and process.args : ("-r", "-rm", "m") and process.args : "*cap_setuid*"  and user.id != "0"]
+  [process where host.os.type == "linux" and event.action == "uid_change" and event.type == "change" and 
+    user.id == "0"]
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1068"
+name = "Exploitation for Privilege Escalation"
+reference = "https://attack.mitre.org/techniques/T1068/"
+
+
+[rule.threat.tactic]
+id = "TA0004"
+name = "Privilege Escalation"
+reference = "https://attack.mitre.org/tactics/TA0004/"
+

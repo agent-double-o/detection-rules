@@ -1,0 +1,64 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Detects attempts to delete an Okta application. An adversary may attempt to modify, deactivate, or delete an Okta
+application in order to weaken an organization's security controls or disrupt their business operations.
+"""
+enabled = true
+exceptions_list = []
+false_positives = [
+    """
+    Consider adding exceptions to this rule to filter false positives if your organization's Okta applications are
+    regularly deleted and the behavior is expected.
+    """,
+]
+from = "now-6m"
+index = ["filebeat-*", "logs-okta*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "Attempt to Delete an Okta Application [Duplicate]"
+note = ""
+references = [
+    "https://developer.okta.com/docs/reference/api/system-log/",
+    "https://developer.okta.com/docs/reference/api/event-types/",
+    "https://www.elastic.co/security-labs/testing-okta-visibility-and-detection-dorothy",
+]
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "2cdb3a93-7918-4528-b099-96558deb44a9"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = ["Use Case: Identity and Access Audit", "Data Source: Okta", "Tactic: Impact"]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.dataset:okta.system and event.action:application.lifecycle.delete
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1489"
+name = "Service Stop"
+reference = "https://attack.mitre.org/techniques/T1489/"
+
+
+[rule.threat.tactic]
+id = "TA0040"
+name = "Impact"
+reference = "https://attack.mitre.org/tactics/TA0040/"
+

@@ -1,0 +1,72 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = "Detects when a specific Okta actor has multiple sessions started from different geolocations."
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-30m"
+index = ["filebeat-*", "logs-okta*", "logs-logen-*"]
+interval = "15m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "Okta User Sessions Started from Different Geolocations [Duplicate]"
+note = ""
+references = [
+    "https://developer.okta.com/docs/reference/api/system-log/",
+    "https://developer.okta.com/docs/reference/api/event-types/",
+    "https://www.elastic.co/security-labs/testing-okta-visibility-and-detection-dorothy",
+    "https://sec.okta.com/articles/2023/08/cross-tenant-impersonation-prevention-and-detection",
+    "https://www.rezonate.io/blog/okta-logs-decoded-unveiling-identity-threats-through-threat-hunting/",
+]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "c273b742-d71a-40dd-a61d-34d8182b00e0"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = ["Use Case: Identity and Access Audit", "Data Source: Okta", "Tactic: Initial Access"]
+timestamp_override = "event.ingested"
+to = "now"
+type = "threshold"
+
+query = '''
+event.dataset:okta.system and okta.event_type:user.session.start and not okta.security_context.is_proxy:true
+    and okta.actor.id:* and client.geo.country_name:*
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1078"
+name = "Valid Accounts"
+reference = "https://attack.mitre.org/techniques/T1078/"
+[[rule.threat.technique.subtechnique]]
+id = "T1078.004"
+name = "Cloud Accounts"
+reference = "https://attack.mitre.org/techniques/T1078/004/"
+
+
+
+[rule.threat.tactic]
+id = "TA0001"
+name = "Initial Access"
+reference = "https://attack.mitre.org/tactics/TA0001/"
+
+[rule.threshold]
+field = ["okta.actor.id"]
+value = 1
+[[rule.threshold.cardinality]]
+field = "client.geo.country_name"
+value = 2
+
+

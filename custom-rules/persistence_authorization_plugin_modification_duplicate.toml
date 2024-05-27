@@ -1,0 +1,72 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Authorization plugins are used to extend the authorization services API and implement mechanisms that are not natively
+supported by the OS, such as multi-factor authentication with third party software. Adversaries may abuse this feature
+to persist and/or collect clear text credentials as they traverse the registered plugins during user logon.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["logs-endpoint.events.*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "Authorization Plugin Modification [Duplicate]"
+references = [
+    "https://developer.apple.com/documentation/security/authorization_plug-ins",
+    "https://www.xorrior.com/persistent-credential-theft/",
+]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "7c726e77-a973-49e4-ba62-8c75a334ab5d"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: macOS",
+    "Use Case: Threat Detection",
+    "Tactic: Persistence",
+    "Data Source: Elastic Defend",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.category:file and host.os.type:macos and not event.type:deletion and
+  file.path:(/Library/Security/SecurityAgentPlugins/* and
+  not (/Library/Security/SecurityAgentPlugins/KandjiPassport.bundle/* or /Library/Security/SecurityAgentPlugins/TeamViewerAuthPlugin.bundle/*)) and
+  not (process.name:shove and process.code_signature.trusted:true)
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1547"
+name = "Boot or Logon Autostart Execution"
+reference = "https://attack.mitre.org/techniques/T1547/"
+[[rule.threat.technique.subtechnique]]
+id = "T1547.002"
+name = "Authentication Package"
+reference = "https://attack.mitre.org/techniques/T1547/002/"
+
+
+
+[rule.threat.tactic]
+id = "TA0003"
+name = "Persistence"
+reference = "https://attack.mitre.org/tactics/TA0003/"
+

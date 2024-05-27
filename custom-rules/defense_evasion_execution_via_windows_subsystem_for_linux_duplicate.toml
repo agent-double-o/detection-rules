@@ -1,0 +1,78 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Detects attempts to execute a program on the host from the Windows Subsystem for Linux. Adversaries may enable and use
+WSL for Linux to avoid detection.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = [
+    "winlogbeat-*",
+    "logs-endpoint.events.process-*",
+    "logs-windows.*",
+    "endgame-*",
+    "logs-system.security*",
+    "logs-logen-*",
+]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Execution via Windows Subsystem for Linux [Duplicate]"
+references = ["https://learn.microsoft.com/en-us/windows/wsl/wsl-config"]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "c6e264af-515f-4e6b-9c49-256531257236"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Windows",
+    "Use Case: Threat Detection",
+    "Tactic: Defense Evasion",
+    "Data Source: Elastic Endgame",
+    "Data Source: Elastic Defend",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+process where host.os.type == "windows" and event.type : "start" and
+  process.parent.name : ("wsl.exe", "wslhost.exe") and
+  not process.executable : (
+        "?:\\Program Files (x86)\\*",
+        "?:\\Program Files\\*",
+        "?:\\Program Files*\\WindowsApps\\MicrosoftCorporationII.WindowsSubsystemForLinux_*\\wsl*.exe",
+        "?:\\Windows\\System32\\conhost.exe",
+        "?:\\Windows\\System32\\lxss\\wslhost.exe",
+        "?:\\Windows\\System32\\WerFault.exe",
+        "?:\\Windows\\Sys*\\wslconfig.exe"
+  )
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1202"
+name = "Indirect Command Execution"
+reference = "https://attack.mitre.org/techniques/T1202/"
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

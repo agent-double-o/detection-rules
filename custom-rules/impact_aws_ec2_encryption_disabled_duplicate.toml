@@ -1,0 +1,76 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies disabling of Amazon Elastic Block Store (EBS) encryption by default in the current region. Disabling
+encryption by default does not change the encryption status of your existing volumes.
+"""
+enabled = true
+exceptions_list = []
+false_positives = [
+    """
+    Disabling encryption may be done by a system or network administrator. Verify whether the user identity, user agent,
+    and/or hostname should be making changes in your environment. Disabling encryption by unfamiliar users or hosts
+    should be investigated. If known behavior is causing false positives, it can be exempted from the rule.
+    """,
+]
+from = "now-60m"
+index = ["filebeat-*", "logs-aws.cloudtrail-*", "logs-logen-*"]
+interval = "10m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "AWS EC2 Encryption Disabled [Duplicate]"
+note = ""
+references = [
+    "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html",
+    "https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/disable-ebs-encryption-by-default.html",
+    "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DisableEbsEncryptionByDefault.html",
+]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "316283d6-82b0-470a-899d-d309e81887db"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Cloud",
+    "Data Source: AWS",
+    "Data Source: Amazon Web Services",
+    "Data Source: AWS EC2",
+    "Tactic: Impact",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.dataset:aws.cloudtrail and event.provider:ec2.amazonaws.com and event.action:DisableEbsEncryptionByDefault and event.outcome:success
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1565"
+name = "Data Manipulation"
+reference = "https://attack.mitre.org/techniques/T1565/"
+[[rule.threat.technique.subtechnique]]
+id = "T1565.001"
+name = "Stored Data Manipulation"
+reference = "https://attack.mitre.org/techniques/T1565/001/"
+
+
+
+[rule.threat.tactic]
+id = "TA0040"
+name = "Impact"
+reference = "https://attack.mitre.org/tactics/TA0040/"
+

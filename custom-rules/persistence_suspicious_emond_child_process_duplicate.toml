@@ -1,0 +1,90 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies the execution of a suspicious child process of the Event Monitor Daemon (emond). Adversaries may abuse this
+service by writing a rule to execute commands when a defined event occurs, such as system start up or user
+authentication.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["logs-endpoint.events.*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Suspicious Emond Child Process [Duplicate]"
+references = ["https://www.xorrior.com/emond-persistence/"]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "e5889eae-a805-4591-a8f3-3a02e0e4cb35"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: macOS",
+    "Use Case: Threat Detection",
+    "Tactic: Persistence",
+    "Data Source: Elastic Defend",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+process where host.os.type == "macos" and event.type in ("start", "process_started") and
+ process.parent.name : "emond" and
+ process.name : (
+   "bash",
+   "dash",
+   "sh",
+   "tcsh",
+   "csh",
+   "zsh",
+   "ksh",
+   "fish",
+   "Python",
+   "python*",
+   "perl*",
+   "php*",
+   "osascript",
+   "pwsh",
+   "curl",
+   "wget",
+   "cp",
+   "mv",
+   "touch",
+   "echo",
+   "base64",
+   "launchctl")
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1546"
+name = "Event Triggered Execution"
+reference = "https://attack.mitre.org/techniques/T1546/"
+[[rule.threat.technique.subtechnique]]
+id = "T1546.014"
+name = "Emond"
+reference = "https://attack.mitre.org/techniques/T1546/014/"
+
+
+
+[rule.threat.tactic]
+id = "TA0003"
+name = "Persistence"
+reference = "https://attack.mitre.org/tactics/TA0003/"
+

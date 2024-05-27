@@ -1,0 +1,76 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies changes to the Safari configuration using the built-in defaults command. Adversaries may attempt to enable or
+disable certain Safari settings, such as enabling JavaScript from Apple Events to ease in the hijacking of the users
+browser.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["logs-endpoint.events.*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "Modification of Safari Settings via Defaults Command [Duplicate]"
+references = ["https://objectivebythesea.com/v2/talks/OBTS_v2_Zohar.pdf"]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "530ede97-539c-4d2c-af59-aff087dd27f3"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: macOS",
+    "Use Case: Threat Detection",
+    "Tactic: Defense Evasion",
+    "Data Source: Elastic Defend",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.category:process and host.os.type:macos and event.type:start and
+  process.name:defaults and process.args:
+    (com.apple.Safari and write and not
+      (
+      UniversalSearchEnabled or
+      SuppressSearchSuggestions or
+      WebKitTabToLinksPreferenceKey or
+      ShowFullURLInSmartSearchField or
+      com.apple.Safari.ContentPageGroupIdentifier.WebKit2TabsToLinks
+      )
+    )
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1562"
+name = "Impair Defenses"
+reference = "https://attack.mitre.org/techniques/T1562/"
+[[rule.threat.technique.subtechnique]]
+id = "T1562.001"
+name = "Disable or Modify Tools"
+reference = "https://attack.mitre.org/techniques/T1562/001/"
+
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

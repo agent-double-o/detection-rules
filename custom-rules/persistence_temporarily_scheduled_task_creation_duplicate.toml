@@ -1,0 +1,83 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Indicates the creation and deletion of a scheduled task within a short time interval. Adversaries can use these to proxy
+malicious execution via the schedule service and perform clean up.
+"""
+enabled = true
+exceptions_list = []
+false_positives = ["Legitimate scheduled tasks may be created during installation of new software."]
+from = "now-9m"
+index = ["winlogbeat-*", "logs-system.*", "logs-windows.*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Temporarily Scheduled Task Creation [Duplicate]"
+references = ["https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4698"]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "68953a2d-247f-4316-a162-4fbb939bc762"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Windows",
+    "Use Case: Threat Detection",
+    "Tactic: Persistence",
+    "Tactic: Execution",
+]
+to = "now"
+type = "eql"
+
+query = '''
+sequence by winlog.computer_name, winlog.event_data.TaskName with maxspan=5m
+   [iam where event.action == "scheduled-task-created" and not user.name : "*$"]
+   [iam where event.action == "scheduled-task-deleted" and not user.name : "*$"]
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1053"
+name = "Scheduled Task/Job"
+reference = "https://attack.mitre.org/techniques/T1053/"
+[[rule.threat.technique.subtechnique]]
+id = "T1053.005"
+name = "Scheduled Task"
+reference = "https://attack.mitre.org/techniques/T1053/005/"
+
+
+
+[rule.threat.tactic]
+id = "TA0003"
+name = "Persistence"
+reference = "https://attack.mitre.org/tactics/TA0003/"
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1053"
+name = "Scheduled Task/Job"
+reference = "https://attack.mitre.org/techniques/T1053/"
+[[rule.threat.technique.subtechnique]]
+id = "T1053.005"
+name = "Scheduled Task"
+reference = "https://attack.mitre.org/techniques/T1053/005/"
+
+
+
+[rule.threat.tactic]
+id = "TA0002"
+name = "Execution"
+reference = "https://attack.mitre.org/tactics/TA0002/"
+

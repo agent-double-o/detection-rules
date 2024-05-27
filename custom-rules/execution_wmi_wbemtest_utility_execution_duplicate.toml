@@ -1,0 +1,71 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+building_block_type = "default"
+description = """
+Adversaries may abuse the WMI diagnostic tool, wbemtest.exe, to enumerate WMI object instances or invoke methods against
+local or remote endpoints.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-119m"
+index = [
+    "logs-endpoint.events.process-*",
+    "winlogbeat-*",
+    "logs-windows.*",
+    "endgame-*",
+    "logs-system.security*",
+    "logs-logen-*",
+]
+interval = "60m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "WMI WBEMTEST Utility Execution [Duplicate]"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "623cf98d-35a8-495b-ad0e-d92eb48ef8b7"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Windows",
+    "Use Case: Threat Detection",
+    "Tactic: Execution",
+    "Data Source: Elastic Defend",
+    "Rule Type: BBR",
+    "Data Source: Elastic Endgame",
+    "Duplicated",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+process where host.os.type == "windows" and event.type == "start" and process.name : "wbemtest.exe"
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1047"
+name = "Windows Management Instrumentation"
+reference = "https://attack.mitre.org/techniques/T1047/"
+
+
+[rule.threat.tactic]
+id = "TA0002"
+name = "Execution"
+reference = "https://attack.mitre.org/tactics/TA0002/"
+

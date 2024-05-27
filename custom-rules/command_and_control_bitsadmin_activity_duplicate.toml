@@ -1,0 +1,96 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+building_block_type = "default"
+description = """
+Windows Background Intelligent Transfer Service (BITS) is a low-bandwidth, asynchronous file transfer mechanism.
+Adversaries may abuse BITS to persist, download, execute, and even clean up after running malicious code.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-119m"
+index = ["logs-endpoint.events.process-*", "logs-logen-*"]
+interval = "60m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Bitsadmin Activity [Duplicate]"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "7ebb2eea-0468-4e99-bbc3-c6c37e8d2bf0"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Windows",
+    "Use Case: Threat Detection",
+    "Tactic: Command and Control",
+    "Data Source: Elastic Defend",
+    "Rule Type: BBR",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+process where host.os.type == "windows" and event.type == "start" and
+  (
+   (process.name : "bitsadmin.exe" and process.args : (
+        "*Transfer*", "*Create*", "AddFile", "*SetNotifyFlags*", "*SetNotifyCmdLine*",
+        "*SetMinRetryDelay*", "*SetCustomHeaders*", "*Resume*")
+   ) or
+   (process.name : "powershell.exe" and process.args : (
+        "*Start-BitsTransfer*", "*Add-BitsFile*",
+        "*Resume-BitsTransfer*", "*Set-BitsTransfer*", "*BITS.Manager*")
+   )
+  )
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1105"
+name = "Ingress Tool Transfer"
+reference = "https://attack.mitre.org/techniques/T1105/"
+
+
+[rule.threat.tactic]
+id = "TA0011"
+name = "Command and Control"
+reference = "https://attack.mitre.org/tactics/TA0011/"
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1197"
+name = "BITS Jobs"
+reference = "https://attack.mitre.org/techniques/T1197/"
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1197"
+name = "BITS Jobs"
+reference = "https://attack.mitre.org/techniques/T1197/"
+
+
+[rule.threat.tactic]
+id = "TA0003"
+name = "Persistence"
+reference = "https://attack.mitre.org/tactics/TA0003/"
+

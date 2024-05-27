@@ -1,0 +1,97 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+A suspicious Endpoint Security parent process was detected. This may indicate a process hollowing or other form of code
+injection.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = [
+    "winlogbeat-*",
+    "logs-endpoint.events.process-*",
+    "logs-windows.*",
+    "endgame-*",
+    "logs-system.security*",
+    "logs-logen-*",
+]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Suspicious Endpoint Security Parent Process [Duplicate]"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "3a0dbd28-42b1-4681-a975-8e14c82d0ddf"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Windows",
+    "Use Case: Threat Detection",
+    "Tactic: Defense Evasion",
+    "Data Source: Elastic Endgame",
+    "Data Source: Elastic Defend",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+process where host.os.type == "windows" and event.type == "start" and
+  process.name : ("esensor.exe", "elastic-endpoint.exe") and
+  process.parent.executable != null and
+  /* add FPs here */
+  not process.parent.executable : (
+        "?:\\Program Files\\Elastic\\*",
+        "?:\\Windows\\System32\\services.exe",
+        "?:\\Windows\\System32\\WerFault*.exe",
+        "?:\\Windows\\System32\\wermgr.exe",
+        "?:\\Windows\\explorer.exe"
+  ) and
+  not (
+    process.parent.executable : (
+        "?:\\Windows\\System32\\cmd.exe",
+        "?:\\Windows\\System32\\SecurityHealthHost.exe",
+        "?:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+    ) and
+    process.args : (
+        "test", "version",
+        "top", "run",
+        "*help", "status",
+        "upgrade", "/launch",
+        "/enable"
+    )
+  )
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1036"
+name = "Masquerading"
+reference = "https://attack.mitre.org/techniques/T1036/"
+[[rule.threat.technique.subtechnique]]
+id = "T1036.005"
+name = "Match Legitimate Name or Location"
+reference = "https://attack.mitre.org/techniques/T1036/005/"
+
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

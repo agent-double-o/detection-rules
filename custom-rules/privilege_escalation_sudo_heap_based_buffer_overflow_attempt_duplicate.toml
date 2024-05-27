@@ -1,0 +1,79 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies the attempted use of a heap-based buffer overflow vulnerability for the Sudo binary in Unix-like systems
+(CVE-2021-3156). Successful exploitation allows an unprivileged user to escalate to the root user.
+"""
+enabled = true
+exceptions_list = []
+false_positives = [
+    """
+    This rule could generate false positives if the process arguments leveraged by the exploit are shared by custom
+    scripts using the Sudo or Sudoedit binaries. Only Sudo versions 1.8.2 through 1.8.31p2 and 1.9.0 through 1.9.5p1 are
+    affected; if those versions are not present on the endpoint, this could be a false positive.
+    """,
+]
+from = "now-9m"
+index = ["auditbeat-*", "logs-endpoint.events.*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "Sudo Heap-Based Buffer Overflow Attempt [Duplicate]"
+references = [
+    "https://cve.mitre.org/cgi-bin/cvename.cgi?name=2021-3156",
+    "https://blog.qualys.com/vulnerabilities-research/2021/01/26/cve-2021-3156-heap-based-buffer-overflow-in-sudo-baron-samedit",
+    "https://www.bleepingcomputer.com/news/security/latest-macos-big-sur-also-has-sudo-root-privilege-escalation-flaw",
+    "https://www.sudo.ws/alerts/unescape_overflow.html",
+]
+related_integrations = []
+required_fields = []
+risk_score = 73
+risk_score_mapping = []
+rule_id = "1ec19a13-a7ad-4b84-b019-cff1df6d9a89"
+setup = ""
+severity = "high"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Linux",
+    "OS: macOS",
+    "Use Case: Threat Detection",
+    "Tactic: Privilege Escalation",
+    "Use Case: Vulnerability",
+    "Data Source: Elastic Defend",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "threshold"
+
+query = '''
+event.category:process and event.type:start and
+  process.name:(sudo or sudoedit) and
+  process.args:(*\\ and ("-i" or "-s"))
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1068"
+name = "Exploitation for Privilege Escalation"
+reference = "https://attack.mitre.org/techniques/T1068/"
+
+
+[rule.threat.tactic]
+id = "TA0004"
+name = "Privilege Escalation"
+reference = "https://attack.mitre.org/tactics/TA0004/"
+
+[rule.threshold]
+field = ["host.hostname"]
+value = 100
+

@@ -1,0 +1,66 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+This rule detects the creation or modification of the dynamic linker preload shared object (ld.so.preload) inside a
+container. The Linux dynamic linker is used to load libraries needed by a program at runtime. Adversaries may hijack the
+dynamic linker by modifying the /etc/ld.so.preload file to point to malicious libraries. This behavior can be used to
+grant unauthorized access to system resources and has been used to evade detection of malicious processes in container
+environments.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-6m"
+index = ["logs-cloud_defend*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Modification of Dynamic Linker Preload Shared Object Inside A Container [Duplicate]"
+references = [
+    "https://unit42.paloaltonetworks.com/hildegard-malware-teamtnt/",
+    "https://www.anomali.com/blog/rocke-evolves-its-arsenal-with-a-new-malware-family-written-in-golang/",
+    "https://sysdig.com/blog/threat-detection-aws-cloud-containers/",
+]
+related_integrations = []
+required_fields = []
+risk_score = 73
+risk_score_mapping = []
+rule_id = "5ebdf2b4-6cf1-471d-a600-092585da4d68"
+setup = ""
+severity = "high"
+severity_mapping = []
+tags = ["Data Source: Elastic Defend for Containers", "Domain: Container", "Tactic: Defense Evasion"]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+file where event.module== "cloud_defend" and event.type != "deletion" and file.path== "/etc/ld.so.preload"
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1574"
+name = "Hijack Execution Flow"
+reference = "https://attack.mitre.org/techniques/T1574/"
+[[rule.threat.technique.subtechnique]]
+id = "T1574.006"
+name = "Dynamic Linker Hijacking"
+reference = "https://attack.mitre.org/techniques/T1574/006/"
+
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

@@ -1,0 +1,59 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+This rule detects events that could be describing IPSEC NAT Traversal traffic. IPSEC is a VPN technology that allows one
+system to talk to another using encrypted tunnels. NAT Traversal enables these tunnels to communicate over the Internet
+where one of the sides is behind a NAT router gateway. This may be common on your network, but this technique is also
+used by threat actors to avoid detection.
+"""
+enabled = true
+exceptions_list = []
+false_positives = [
+    """
+    Some networks may utilize these protocols but usage that is unfamiliar to local network administrators can be
+    unexpected and suspicious. Because this port is in the ephemeral range, this rule may false under certain
+    conditions, such as when an application server with a public IP address replies to a client which has used a UDP
+    port in the range by coincidence. This is uncommon but such servers can be excluded.
+    """,
+]
+from = "now-9m"
+index = ["packetbeat-*", "auditbeat-*", "filebeat-*", "logs-network_traffic.*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "IPSEC NAT Traversal Port Activity [Duplicate]"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "7819e3b7-dbfd-4bf8-8963-6e713d9ce1ea"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = ["Tactic: Command and Control", "Domain: Endpoint", "Use Case: Threat Detection"]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+(event.dataset: network_traffic.flow or (event.category: (network or network_traffic))) and network.transport:udp and destination.port:4500
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+technique = []
+
+[rule.threat.tactic]
+id = "TA0011"
+name = "Command and Control"
+reference = "https://attack.mitre.org/tactics/TA0011/"
+

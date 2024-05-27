@@ -1,0 +1,63 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic", "Austin Songer"]
+description = """
+Identifies the assignment of rights to access content from another mailbox. An adversary may use the compromised account
+to send messages to other accounts in the network of the target organization while creating inbox rules, so messages can
+evade spam/phishing detection mechanisms.
+"""
+enabled = true
+exceptions_list = []
+false_positives = ["Assignment of rights to a service account."]
+from = "now-6m"
+index = ["filebeat-*", "logs-o365*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "O365 Exchange Suspicious Mailbox Right Delegation [Duplicate]"
+note = ""
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "483d7b96-28d0-44bc-a1df-147f61451662"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = ["Domain: Cloud", "Data Source: Microsoft 365", "Use Case: Configuration Audit", "Tactic: Persistence"]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.dataset:o365.audit and event.provider:Exchange and event.action:Add-MailboxPermission and
+o365.audit.Parameters.AccessRights:(FullAccess or SendAs or SendOnBehalf) and event.outcome:success and
+not user.id : "NT AUTHORITY\SYSTEM (Microsoft.Exchange.Servicehost)"
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1098"
+name = "Account Manipulation"
+reference = "https://attack.mitre.org/techniques/T1098/"
+[[rule.threat.technique.subtechnique]]
+id = "T1098.002"
+name = "Additional Email Delegate Permissions"
+reference = "https://attack.mitre.org/techniques/T1098/002/"
+
+
+
+[rule.threat.tactic]
+id = "TA0003"
+name = "Persistence"
+reference = "https://attack.mitre.org/tactics/TA0003/"
+

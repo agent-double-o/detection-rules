@@ -1,0 +1,121 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+building_block_type = "default"
+description = """
+Identifies the use of Cmdlets and methods related to remote execution activities using WinRM. Attackers can abuse WinRM
+to perform lateral movement using built-in tools.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-119m"
+index = ["winlogbeat-*", "logs-windows.powershell*", "logs-logen-*"]
+interval = "60m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "PowerShell Script with Remote Execution Capabilities via WinRM [Duplicate]"
+references = [
+    "https://attack.mitre.org/techniques/T1021/006/",
+    "https://github.com/cobbr/SharpSploit/blob/master/SharpSploit/LateralMovement/PowerShellRemoting.cs",
+    "https://github.com/BC-SECURITY/Empire/blob/main/empire/server/modules/powershell/lateral_movement/invoke_psremoting.py",
+]
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "44ca7f30-8c22-461c-a9cd-fe59e7795ef5"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Windows",
+    "Use Case: Threat Detection",
+    "Tactic: Lateral Movement",
+    "Tactic: Execution",
+    "Data Source: PowerShell Logs",
+    "Rule Type: BBR",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.category:process and host.os.type:windows and
+  powershell.file.script_block_text : (
+    ("Invoke-WmiMethod" or "Invoke-Command" or "Enter-PSSession") and "ComputerName"
+  ) and
+  not user.id : "S-1-5-18" and
+  not file.directory : (
+    "C:\\Program Files\\LogicMonitor\\Agent\\tmp"
+  ) and not
+  powershell.file.script_block_text : (
+    "Export-ModuleMember -Function @('Invoke-Expression''Invoke-Command')" and
+    "function Invoke-Command {"
+  )
+'''
+
+
+[[rule.filters]]
+
+[rule.filters.meta]
+negate = true
+[rule.filters.query.wildcard."file.path"]
+case_insensitive = true
+value = "?:\\\\Program Files\\\\WindowsPowerShell\\\\Modules\\\\dbatools\\\\*\\\\allcommands.ps1"
+[[rule.filters]]
+
+[rule.filters.meta]
+negate = true
+[rule.filters.query.wildcard."file.directory"]
+case_insensitive = true
+value = "?:\\\\Program Files\\\\Microsoft\\\\Exchange Server\\\\*\\\\bin"
+[[rule.filters]]
+
+[rule.filters.meta]
+negate = true
+[rule.filters.query.wildcard."file.directory"]
+case_insensitive = true
+value = "?:\\\\ExchangeServer\\\\bin*"
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1021"
+name = "Remote Services"
+reference = "https://attack.mitre.org/techniques/T1021/"
+[[rule.threat.technique.subtechnique]]
+id = "T1021.006"
+name = "Windows Remote Management"
+reference = "https://attack.mitre.org/techniques/T1021/006/"
+
+
+
+[rule.threat.tactic]
+id = "TA0008"
+name = "Lateral Movement"
+reference = "https://attack.mitre.org/tactics/TA0008/"
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1059"
+name = "Command and Scripting Interpreter"
+reference = "https://attack.mitre.org/techniques/T1059/"
+[[rule.threat.technique.subtechnique]]
+id = "T1059.001"
+name = "PowerShell"
+reference = "https://attack.mitre.org/techniques/T1059/001/"
+
+
+
+[rule.threat.tactic]
+id = "TA0002"
+name = "Execution"
+reference = "https://attack.mitre.org/tactics/TA0002/"
+

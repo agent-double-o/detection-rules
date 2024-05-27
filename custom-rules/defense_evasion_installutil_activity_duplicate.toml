@@ -1,0 +1,77 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+building_block_type = "default"
+description = """
+InstallUtil is a command-line utility that allows for installation and uninstallation of resources by executing specific
+installer components specified in .NET binaries. Adversaries may use InstallUtil to proxy the execution of code through
+a trusted Windows utility.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-119m"
+index = [
+    "logs-endpoint.events.process-*",
+    "logs-system.security*",
+    "winlogbeat-*",
+    "logs-windows.*",
+    "endgame-*",
+    "logs-logen-*",
+]
+interval = "60m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "InstallUtil Activity [Duplicate]"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "0a931a74-d8a9-45e6-9216-e80286d577fc"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Windows",
+    "Use Case: Threat Detection",
+    "Tactic: Defense Evasion",
+    "Data Source: Elastic Defend",
+    "Rule Type: BBR",
+    "Data Source: Elastic Endgame",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+process where host.os.type == "windows" and event.type == "start" and
+  process.name : "installutil.exe" and not user.id : "S-1-5-18"
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1218"
+name = "System Binary Proxy Execution"
+reference = "https://attack.mitre.org/techniques/T1218/"
+[[rule.threat.technique.subtechnique]]
+id = "T1218.004"
+name = "InstallUtil"
+reference = "https://attack.mitre.org/techniques/T1218/004/"
+
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

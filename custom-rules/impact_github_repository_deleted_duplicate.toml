@@ -1,0 +1,62 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+This rule detects when a GitHub repository is deleted within your organization. Repositories are a critical component
+used within an organization to manage work, collaborate with others and release products to the public. Any delete
+action against a repository should be investigated to determine it's validity. Unauthorized deletion of organization
+repositories could cause irreversible loss of intellectual property and indicate compromise within your organization.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["logs-github.audit-*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "GitHub Repository Deleted [Duplicate]"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "98a945df-99c0-4c41-95a7-a3312c560fca"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Cloud",
+    "Use Case: Threat Detection",
+    "Use Case: UEBA",
+    "Tactic: Impact",
+    "Data Source: Github",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+configuration where event.module == "github" and event.action == "repo.destroy"
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1485"
+name = "Data Destruction"
+reference = "https://attack.mitre.org/techniques/T1485/"
+
+
+[rule.threat.tactic]
+id = "TA0040"
+name = "Impact"
+reference = "https://attack.mitre.org/tactics/TA0040/"
+

@@ -1,0 +1,69 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+building_block_type = "default"
+description = """
+The Microsoft Connection Manager Profile Installer (CMSTP.exe) is a command-line program to install Connection Manager
+service profiles, which accept installation information file (INF) files. Adversaries may abuse CMSTP to proxy the
+execution of malicious code by supplying INF files that contain malicious commands.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-119m"
+index = ["logs-endpoint.events.process-*", "logs-logen-*"]
+interval = "60m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Potential Defense Evasion via CMSTP.exe [Duplicate]"
+references = ["https://attack.mitre.org/techniques/T1218/003/"]
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "c70ea419-fd0e-482b-8ab7-beec168f6cbf"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Windows",
+    "Use Case: Threat Detection",
+    "Tactic: Defense Evasion",
+    "Data Source: Elastic Defend",
+    "Rule Type: BBR",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+process where host.os.type == "windows" and event.type == "start" and
+  process.name : "cmstp.exe" and process.args == "/s"
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1218"
+name = "System Binary Proxy Execution"
+reference = "https://attack.mitre.org/techniques/T1218/"
+[[rule.threat.technique.subtechnique]]
+id = "T1218.003"
+name = "CMSTP"
+reference = "https://attack.mitre.org/techniques/T1218/003/"
+
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

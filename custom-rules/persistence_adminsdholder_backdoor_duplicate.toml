@@ -1,0 +1,78 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Detects modifications in the AdminSDHolder object. Attackers can abuse the SDProp process to implement a persistent
+backdoor in Active Directory. SDProp compares the permissions on protected objects with those defined on the
+AdminSDHolder object. If the permissions on any of the protected accounts and groups do not match, the permissions on
+the protected accounts and groups are reset to match those of the domain's AdminSDHolder object, regaining their
+Administrative Privileges.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["winlogbeat-*", "logs-system.*", "logs-windows.*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "AdminSDHolder Backdoor [Duplicate]"
+references = [
+    "https://adsecurity.org/?p=1906",
+    "https://docs.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/appendix-c--protected-accounts-and-groups-in-active-directory#adminsdholder",
+]
+related_integrations = []
+required_fields = []
+risk_score = 73
+risk_score_mapping = []
+rule_id = "c5298096-bb07-4975-984a-dbf22c998b5c"
+setup = ""
+severity = "high"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Windows",
+    "Use Case: Threat Detection",
+    "Tactic: Persistence",
+    "Use Case: Active Directory Monitoring",
+    "Data Source: Active Directory",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.action:"Directory Service Changes" and event.code:5136 and
+  winlog.event_data.ObjectDN:CN=AdminSDHolder,CN=System*
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1078"
+name = "Valid Accounts"
+reference = "https://attack.mitre.org/techniques/T1078/"
+[[rule.threat.technique.subtechnique]]
+id = "T1078.002"
+name = "Domain Accounts"
+reference = "https://attack.mitre.org/techniques/T1078/002/"
+
+
+[[rule.threat.technique]]
+id = "T1098"
+name = "Account Manipulation"
+reference = "https://attack.mitre.org/techniques/T1098/"
+
+
+[rule.threat.tactic]
+id = "TA0003"
+name = "Persistence"
+reference = "https://attack.mitre.org/tactics/TA0003/"
+

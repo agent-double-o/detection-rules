@@ -1,0 +1,58 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies multiple successive failed attempts to use denied model resources within AWS Bedrock. This could indicated
+attempts to bypass limitations of other approved models, or to force an impact on the environment by incurring
+exhorbitant costs.
+"""
+enabled = true
+exceptions_list = []
+false_positives = ["Legitimate misunderstanding by users or overly strict policies"]
+from = "now-60m"
+interval = "10m"
+language = "esql"
+license = "Elastic License v2"
+max_signals = 100
+name = "AWS Bedrock Detected Multiple Attempts to use Denied Models by a Single User [Duplicate]"
+references = [
+    "https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-components.html",
+    "https://atlas.mitre.org/techniques/AML.T0015",
+    "https://atlas.mitre.org/techniques/AML.T0034",
+    "https://www.elastic.co/security-labs/elastic-advances-llm-security",
+]
+related_integrations = []
+required_fields = []
+risk_score = 73
+risk_score_mapping = []
+rule_id = "6cfa1d33-b858-4640-bbe8-d05fc1a5e757"
+setup = ""
+severity = "high"
+severity_mapping = []
+tags = [
+    "Domain: LLM",
+    "Data Source: AWS Bedrock",
+    "Data Source: AWS S3",
+    "Resources: Investigation Guide",
+    "Use Case: Policy Violation",
+    "Mitre Atlas: T0015",
+    "Mitre Atlas: T0034",
+]
+threat = []
+timestamp_override = "event.ingested"
+to = "now"
+type = "esql"
+
+query = '''
+from logs-aws_bedrock.invocation-*
+| where gen_ai.response.error_code == "AccessDeniedException"
+| stats total_denials = count(*) by user.id, gen_ai.request.model.id, cloud.account.id
+| where total_denials > 3
+| sort total_denials desc
+'''
+

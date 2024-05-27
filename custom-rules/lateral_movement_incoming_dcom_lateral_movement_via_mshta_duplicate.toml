@@ -1,0 +1,96 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies the use of Distributed Component Object Model (DCOM) to execute commands from a remote host, which are
+launched via the HTA Application COM Object. This behavior may indicate an attacker abusing a DCOM application to move
+laterally while attempting to evade detection.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = [
+    "winlogbeat-*",
+    "logs-endpoint.events.process-*",
+    "logs-endpoint.events.network-*",
+    "logs-windows.sysmon_operational-*",
+    "logs-logen-*",
+]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Incoming DCOM Lateral Movement via MSHTA [Duplicate]"
+references = ["https://codewhitesec.blogspot.com/2018/07/lethalhta.html"]
+related_integrations = []
+required_fields = []
+risk_score = 73
+risk_score_mapping = []
+rule_id = "5b83e3c6-da8d-469a-968a-46a0d06a024d"
+setup = ""
+severity = "high"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Windows",
+    "Use Case: Threat Detection",
+    "Tactic: Lateral Movement",
+    "Data Source: Elastic Defend",
+    "Data Source: Sysmon",
+]
+to = "now"
+type = "eql"
+
+query = '''
+sequence with maxspan=1m
+  [process where host.os.type == "windows" and event.type == "start" and
+     process.name : "mshta.exe" and process.args : "-Embedding"
+  ] by host.id, process.entity_id
+  [network where host.os.type == "windows" and event.type == "start" and process.name : "mshta.exe" and
+     network.direction : ("incoming", "ingress") and network.transport == "tcp" and
+     source.port > 49151 and destination.port > 49151 and source.ip != "127.0.0.1" and source.ip != "::1"
+  ] by host.id, process.entity_id
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1021"
+name = "Remote Services"
+reference = "https://attack.mitre.org/techniques/T1021/"
+[[rule.threat.technique.subtechnique]]
+id = "T1021.003"
+name = "Distributed Component Object Model"
+reference = "https://attack.mitre.org/techniques/T1021/003/"
+
+
+
+[rule.threat.tactic]
+id = "TA0008"
+name = "Lateral Movement"
+reference = "https://attack.mitre.org/tactics/TA0008/"
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1218"
+name = "System Binary Proxy Execution"
+reference = "https://attack.mitre.org/techniques/T1218/"
+[[rule.threat.technique.subtechnique]]
+id = "T1218.005"
+name = "Mshta"
+reference = "https://attack.mitre.org/techniques/T1218/005/"
+
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

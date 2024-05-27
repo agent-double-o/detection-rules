@@ -1,0 +1,64 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Detects attempts to disable Gatekeeper on macOS. Gatekeeper is a security feature that's designed to ensure that only
+trusted software is run. Adversaries may attempt to disable Gatekeeper before executing malicious code.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["logs-endpoint.events.*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "Attempt to Disable Gatekeeper [Duplicate]"
+references = [
+    "https://support.apple.com/en-us/HT202491",
+    "https://community.carbonblack.com/t5/Threat-Advisories-Documents/TAU-TIN-Shlayer-OSX/ta-p/68397",
+]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "f3820055-a327-4953-a427-b2accb005d5c"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: macOS",
+    "Use Case: Threat Detection",
+    "Tactic: Defense Evasion",
+    "Data Source: Elastic Defend",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.category:process and host.os.type:macos and event.type:(start or process_started) and
+  process.args:(spctl and "--master-disable")
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1553"
+name = "Subvert Trust Controls"
+reference = "https://attack.mitre.org/techniques/T1553/"
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

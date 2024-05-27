@@ -1,0 +1,65 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Detects attempts to modify or delete a sign on policy for an Okta application. An adversary may attempt to modify or
+delete the sign on policy for an Okta application in order to remove or weaken an organization's security controls.
+"""
+enabled = true
+exceptions_list = []
+false_positives = [
+    """
+    Consider adding exceptions to this rule to filter false positives if sign on policies for Okta applications are
+    regularly modified or deleted in your organization.
+    """,
+]
+from = "now-6m"
+index = ["filebeat-*", "logs-okta*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "Modification or Removal of an Okta Application Sign-On Policy [Duplicate]"
+note = ""
+references = [
+    "https://help.okta.com/en/prod/Content/Topics/Security/App_Based_Signon.htm",
+    "https://developer.okta.com/docs/reference/api/system-log/",
+    "https://developer.okta.com/docs/reference/api/event-types/",
+    "https://www.elastic.co/security-labs/testing-okta-visibility-and-detection-dorothy",
+]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "8dbfd9d6-b752-4e72-977f-d5f2e0ca64a9"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = ["Tactic: Persistence", "Use Case: Identity and Access Audit", "Data Source: Okta"]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.dataset:okta.system and event.action:(application.policy.sign_on.update or application.policy.sign_on.rule.delete)
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1556"
+name = "Modify Authentication Process"
+reference = "https://attack.mitre.org/techniques/T1556/"
+
+
+[rule.threat.tactic]
+id = "TA0003"
+name = "Persistence"
+reference = "https://attack.mitre.org/tactics/TA0003/"
+

@@ -1,0 +1,70 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies the deletion of a specified AWS Identity and Access Management (IAM) resource group. Deleting a resource
+group does not delete resources that are members of the group; it only deletes the group structure.
+"""
+enabled = true
+exceptions_list = []
+false_positives = [
+    """
+    A resource group may be deleted by a system administrator. Verify whether the user identity, user agent, and/or
+    hostname should be making changes in your environment. Resource group deletions by unfamiliar users or hosts should
+    be investigated. If known behavior is causing false positives, it can be exempted from the rule.
+    """,
+]
+from = "now-60m"
+index = ["filebeat-*", "logs-aws.cloudtrail-*", "logs-logen-*"]
+interval = "10m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "AWS IAM Group Deletion [Duplicate]"
+note = ""
+references = [
+    "https://awscli.amazonaws.com/v2/documentation/api/latest/reference/iam/delete-group.html",
+    "https://docs.aws.amazon.com/IAM/latest/APIReference/API_DeleteGroup.html",
+]
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "3ab6abf5-1e1b-4087-9adf-d1335ae71952"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = [
+    "Domain: Cloud",
+    "Data Source: AWS",
+    "Data Source: Amazon Web Services",
+    "Data Source: AWS IAM",
+    "Tactic: Impact",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.dataset:aws.cloudtrail and event.provider:iam.amazonaws.com and event.action:DeleteGroup and event.outcome:success
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1531"
+name = "Account Access Removal"
+reference = "https://attack.mitre.org/techniques/T1531/"
+
+
+[rule.threat.tactic]
+id = "TA0040"
+name = "Impact"
+reference = "https://attack.mitre.org/tactics/TA0040/"
+

@@ -1,0 +1,76 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Detects deletion of the quarantine attribute by an unusual process (xattr). In macOS, when applications or programs are
+downloaded from the internet, there is a quarantine flag set on the file. This attribute is read by Apple's Gatekeeper
+defense program at execution time. An adversary may disable this attribute to evade defenses.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["logs-endpoint.events.*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Quarantine Attrib Removed by Unsigned or Untrusted Process [Duplicate]"
+references = [
+    "https://nixhacker.com/security-protection-in-macos-1/",
+    "https://eclecticlight.co/2020/10/29/quarantine-and-the-quarantine-flag/",
+]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "0823c692-cced-4d46-8e73-7d98e74626ef"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: macOS",
+    "Use Case: Threat Detection",
+    "Tactic: Defense Evasion",
+    "Data Source: Elastic Defend",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+file where event.action == "extended_attributes_delete" and process.executable != null and
+(process.code_signature.trusted == false or process.code_signature.exists == false) and not
+process.executable : ("/usr/bin/xattr", 
+                      "/System/*", 
+                      "/private/tmp/KSInstallAction.*/*/Install Google Software Update.app/Contents/Helpers/ksinstall",
+                      "/Applications/CEWE Fotoschau.app/Contents/MacOS/FotoPlus",
+                      "/Applications/.com.bomgar.scc.*/Remote Support Customer Client.app/Contents/MacOS/sdcust") and not
+file.path : "/private/var/folders/*"
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1562"
+name = "Impair Defenses"
+reference = "https://attack.mitre.org/techniques/T1562/"
+[[rule.threat.technique.subtechnique]]
+id = "T1562.001"
+name = "Disable or Modify Tools"
+reference = "https://attack.mitre.org/techniques/T1562/001/"
+
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

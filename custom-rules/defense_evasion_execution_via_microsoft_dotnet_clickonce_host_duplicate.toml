@@ -1,0 +1,74 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+building_block_type = "default"
+description = """
+Identifies the execution of DotNet ClickOnce installer via Dfsvc.exe trampoline. Adversaries may take advantage of
+ClickOnce to proxy execution of malicious payloads via trusted Microsoft processes.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-119m"
+index = ["logs-endpoint.events.*", "logs-logen-*"]
+interval = "60m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Execution via Microsoft DotNet ClickOnce Host [Duplicate]"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "c138845f-77e0-4d41-86b2-3b83b1c838c3"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Windows",
+    "Use Case: Threat Detection",
+    "Tactic: Defense Evasion",
+    "Rule Type: BBR",
+    "Data Source: Elastic Defend",
+]
+to = "now"
+type = "eql"
+
+query = '''
+sequence by user.id with maxspan=5s
+ [process where host.os.type == "windows" and event.action == "start" and
+  process.name : "rundll32.exe" and process.command_line : ("*dfshim*ShOpenVerbApplication*", "*dfshim*#*")]
+ [network where host.os.type == "windows" and process.name : "dfsvc.exe"]
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1127"
+name = "Trusted Developer Utilities Proxy Execution"
+reference = "https://attack.mitre.org/techniques/T1127/"
+
+[[rule.threat.technique]]
+id = "T1218"
+name = "System Binary Proxy Execution"
+reference = "https://attack.mitre.org/techniques/T1218/"
+[[rule.threat.technique.subtechnique]]
+id = "T1218.011"
+name = "Rundll32"
+reference = "https://attack.mitre.org/techniques/T1218/011/"
+
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

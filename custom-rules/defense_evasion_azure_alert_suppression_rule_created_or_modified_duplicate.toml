@@ -1,0 +1,66 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Austin Songer"]
+description = """
+Identifies the creation of suppression rules in Azure. Suppression rules are a mechanism used to suppress alerts
+previously identified as false positives or too noisy to be in production. This mechanism can be abused or mistakenly
+configured, resulting in defense evasions and loss of security visibility.
+"""
+enabled = true
+exceptions_list = []
+false_positives = [
+    """
+    Suppression Rules can be created legitimately by a system administrator. Verify whether the user identity, user
+    agent, and/or hostname should be making changes in your environment. Suppression Rules created by unfamiliar users
+    should be investigated. If known behavior is causing false positives, it can be exempted from the rule.
+    """,
+]
+from = "now-25m"
+index = ["filebeat-*", "logs-azure*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "Azure Alert Suppression Rule Created or Modified [Duplicate]"
+note = ""
+references = [
+    "https://docs.microsoft.com/en-us/azure/role-based-access-control/resource-provider-operations",
+    "https://docs.microsoft.com/en-us/rest/api/securitycenter/alerts-suppression-rules/update",
+]
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "469305c1-4ed9-41ed-8317-0c94d0dc99fd"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = ["Domain: Cloud", "Data Source: Azure", "Use Case: Configuration Audit", "Tactic: Defense Evasion"]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.dataset:azure.activitylogs and azure.activitylogs.operation_name:"MICROSOFT.SECURITY/ALERTSSUPPRESSIONRULES/WRITE" and
+event.outcome: "success"
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1562"
+name = "Impair Defenses"
+reference = "https://attack.mitre.org/techniques/T1562/"
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

@@ -1,0 +1,76 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies suspicious modifications of the calendar file by an unusual process. Adversaries may create a custom calendar
+notification procedure to execute a malicious program at a recurring interval to establish persistence.
+"""
+enabled = true
+exceptions_list = []
+false_positives = ["Trusted applications for managing calendars and reminders."]
+from = "now-9m"
+index = ["logs-endpoint.events.*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "Suspicious Calendar File Modification [Duplicate]"
+references = [
+    "https://labs.f-secure.com/blog/operationalising-calendar-alerts-persistence-on-macos",
+    "https://github.com/FSecureLABS/CalendarPersist",
+    "https://github.com/D00MFist/PersistentJXA/blob/master/CalendarPersist.js",
+]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "56f35d5c-d6ca-461b-8201-848e67413aee"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: macOS",
+    "Use Case: Threat Detection",
+    "Tactic: Persistence",
+    "Data Source: Elastic Defend",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.category:file and host.os.type:macos and event.action:modification and
+  file.path:/Users/*/Library/Calendars/*.calendar/Events/*.ics and
+  process.executable:
+  (* and not
+    (
+      /System/Library/* or
+      /System/Applications/Calendar.app/Contents/MacOS/* or
+      /System/Applications/Mail.app/Contents/MacOS/Mail or
+      /usr/libexec/xpcproxy or
+      /sbin/launchd or
+      /Applications/*
+    )
+  )
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1546"
+name = "Event Triggered Execution"
+reference = "https://attack.mitre.org/techniques/T1546/"
+
+
+[rule.threat.tactic]
+id = "TA0003"
+name = "Persistence"
+reference = "https://attack.mitre.org/tactics/TA0003/"
+

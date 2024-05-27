@@ -1,0 +1,73 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+This rule detects a user attempt to establish a shell session into a pod using the 'exec' command. Using the 'exec'
+command in a pod allows a user to establish a temporary shell session and execute any process/commands in the pod. An
+adversary may call bash to gain a persistent interactive shell which will allow access to any data the pod has
+permissions to, including secrets.
+"""
+enabled = true
+exceptions_list = []
+false_positives = [
+    """
+    An administrator may need to exec into a pod for a legitimate reason like debugging purposes. Containers built from
+    Linux and Windows OS images, tend to include debugging utilities. In this case, an admin may choose to run commands
+    inside a specific container with kubectl exec ${POD_NAME} -c ${CONTAINER_NAME} -- ${CMD} ${ARG1} ${ARG2} ...
+    ${ARGN}. For example, the following command can be used to look at logs from a running Cassandra pod: kubectl exec
+    cassandra --cat /var/log/cassandra/system.log . Additionally, the -i and -t arguments might be used to run a shell
+    connected to the terminal: kubectl exec -i -t cassandra -- sh
+    """,
+]
+from = "now-6m"
+index = ["logs-kubernetes.*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "Kubernetes User Exec into Pod [Duplicate]"
+note = ""
+references = [
+    "https://kubernetes.io/docs/tasks/debug/debug-application/debug-running-pod/",
+    "https://kubernetes.io/docs/tasks/debug/debug-application/get-shell-running-container/",
+]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "d0071620-ca22-42bc-ae71-c815a87e5ac8"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = ["Data Source: Kubernetes", "Tactic: Execution"]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.dataset : "kubernetes.audit_logs"
+  and kubernetes.audit.annotations.authorization_k8s_io/decision:"allow"
+  and kubernetes.audit.verb:"create"
+  and kubernetes.audit.objectRef.resource:"pods"
+  and kubernetes.audit.objectRef.subresource:"exec"
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1609"
+name = "Container Administration Command"
+reference = "https://attack.mitre.org/techniques/T1609/"
+
+
+[rule.threat.tactic]
+id = "TA0002"
+name = "Execution"
+reference = "https://attack.mitre.org/tactics/TA0002/"
+

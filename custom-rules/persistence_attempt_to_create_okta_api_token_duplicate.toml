@@ -1,0 +1,65 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Detects attempts to create an Okta API token. An adversary may create an Okta API token to maintain access to an
+organization's network while they work to achieve their objectives. An attacker may abuse an API token to execute
+techniques such as creating user accounts or disabling security rules or policies.
+"""
+enabled = true
+exceptions_list = []
+false_positives = [
+    """
+    If the behavior of creating Okta API tokens is expected, consider adding exceptions to this rule to filter false
+    positives.
+    """,
+]
+from = "now-6m"
+index = ["filebeat-*", "logs-okta*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "Attempt to Create Okta API Token [Duplicate]"
+note = ""
+references = [
+    "https://developer.okta.com/docs/reference/api/system-log/",
+    "https://developer.okta.com/docs/reference/api/event-types/",
+    "https://www.elastic.co/security-labs/testing-okta-visibility-and-detection-dorothy",
+]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "5d945817-e7a4-47fb-a609-c8e2146d75a3"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = ["Use Case: Identity and Access Audit", "Data Source: Okta", "Tactic: Persistence"]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.dataset:okta.system and event.action:system.api_token.create
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1136"
+name = "Create Account"
+reference = "https://attack.mitre.org/techniques/T1136/"
+
+
+[rule.threat.tactic]
+id = "TA0003"
+name = "Persistence"
+reference = "https://attack.mitre.org/tactics/TA0003/"
+

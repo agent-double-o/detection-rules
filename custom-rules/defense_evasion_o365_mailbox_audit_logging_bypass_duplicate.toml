@@ -1,0 +1,65 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Detects the occurrence of mailbox audit bypass associations. The mailbox audit is responsible for logging specified
+mailbox events (like accessing a folder or a message or permanently deleting a message). However, actions taken by some
+authorized accounts, such as accounts used by third-party tools or accounts used for lawful monitoring, can create a
+large number of mailbox audit log entries and may not be of interest to your organization. Because of this,
+administrators can create bypass associations, allowing certain accounts to perform their tasks without being logged.
+Attackers can abuse this allowlist mechanism to conceal actions taken, as the mailbox audit will log no activity done by
+the account.
+"""
+enabled = true
+exceptions_list = []
+false_positives = ["Legitimate allowlisting of noisy accounts"]
+from = "now-30m"
+index = ["filebeat-*", "logs-o365*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "O365 Mailbox Audit Logging Bypass [Duplicate]"
+note = ""
+references = ["https://twitter.com/misconfig/status/1476144066807140355"]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "ef6a172e-9c78-431e-9e95-b7615b9644af"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = ["Domain: Cloud", "Data Source: Microsoft 365", "Tactic: Initial Access", "Tactic: Defense Evasion"]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.dataset:o365.audit and event.provider:Exchange and event.action:Set-MailboxAuditBypassAssociation and event.outcome:success
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1562"
+name = "Impair Defenses"
+reference = "https://attack.mitre.org/techniques/T1562/"
+[[rule.threat.technique.subtechnique]]
+id = "T1562.001"
+name = "Disable or Modify Tools"
+reference = "https://attack.mitre.org/techniques/T1562/001/"
+
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

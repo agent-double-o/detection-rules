@@ -1,0 +1,75 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies the creation of a Windows service by an unusual client process. Services may be created with administrator
+privileges but are executed under SYSTEM privileges, so an adversary may also use a service to escalate privileges from
+administrator to SYSTEM.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["winlogbeat-*", "logs-system.*", "logs-windows.*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "Windows Service Installed via an Unusual Client [Duplicate]"
+references = [
+    "https://www.x86matthew.com/view_post?id=create_svc_rpc",
+    "https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4697",
+    "https://github.com/atc-project/atomic-threat-coverage/blob/master/Atomic_Threat_Coverage/Logging_Policies/LP_0100_windows_audit_security_system_extension.md",
+]
+related_integrations = []
+required_fields = []
+risk_score = 73
+risk_score_mapping = []
+rule_id = "a9470076-238e-46bc-97dc-e0f4956835bb"
+setup = ""
+severity = "high"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Windows",
+    "Use Case: Threat Detection",
+    "Tactic: Privilege Escalation",
+    "Duplicated",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.action:"service-installed" and
+  (winlog.event_data.ClientProcessId:"0" or winlog.event_data.ParentProcessId:"0") and
+  not winlog.event_data.ServiceFileName : (
+    "C:\\Windows\\VeeamVssSupport\\VeeamGuestHelper.exe" or
+    "%SystemRoot%\\system32\\Drivers\\Crowdstrike\\17706-CsInstallerService.exe"
+  )
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1543"
+name = "Create or Modify System Process"
+reference = "https://attack.mitre.org/techniques/T1543/"
+[[rule.threat.technique.subtechnique]]
+id = "T1543.003"
+name = "Windows Service"
+reference = "https://attack.mitre.org/techniques/T1543/003/"
+
+
+
+[rule.threat.tactic]
+id = "TA0004"
+name = "Privilege Escalation"
+reference = "https://attack.mitre.org/tactics/TA0004/"
+

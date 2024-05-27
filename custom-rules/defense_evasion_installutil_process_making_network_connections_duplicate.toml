@@ -1,0 +1,75 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies InstallUtil.exe making outbound network connections. This may indicate adversarial activity as InstallUtil is
+often leveraged by adversaries to execute code and evade detection.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = [
+    "logs-endpoint.events.process-*",
+    "logs-endpoint.events.network-*",
+    "winlogbeat-*",
+    "logs-windows.sysmon_operational-*",
+    "logs-logen-*",
+]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "InstallUtil Process Making Network Connections [Duplicate]"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "b617b995-a49b-433d-bde4-b3a33f3e2972"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Windows",
+    "Use Case: Threat Detection",
+    "Tactic: Defense Evasion",
+    "Data Source: Elastic Defend",
+    "Data Source: Sysmon",
+]
+to = "now"
+type = "eql"
+
+query = '''
+/* the benefit of doing this as an eql sequence vs kql is this will limit to alerting only on the first network connection */
+
+sequence by process.entity_id
+  [process where host.os.type == "windows" and event.type == "start" and process.name : "installutil.exe"]
+  [network where host.os.type == "windows" and process.name : "installutil.exe" and network.direction : ("outgoing", "egress")]
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1218"
+name = "System Binary Proxy Execution"
+reference = "https://attack.mitre.org/techniques/T1218/"
+[[rule.threat.technique.subtechnique]]
+id = "T1218.004"
+name = "InstallUtil"
+reference = "https://attack.mitre.org/techniques/T1218/004/"
+
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

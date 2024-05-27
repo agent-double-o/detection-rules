@@ -1,0 +1,69 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = "Detects use of the systemsetup command to enable remote SSH Login."
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["logs-endpoint.events.*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "Remote SSH Login Enabled via systemsetup Command [Duplicate]"
+references = [
+    "https://documents.trendmicro.com/assets/pdf/XCSSET_Technical_Brief.pdf",
+    "https://ss64.com/osx/systemsetup.html",
+    "https://support.apple.com/guide/remote-desktop/about-systemsetup-apd95406b8d/mac",
+]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "e46a194f-3d6d-4db0-b0b1-217adb38e5e5"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: macOS",
+    "Use Case: Threat Detection",
+    "Tactic: Lateral Movement",
+    "Data Source: Elastic Defend",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.category:process and host.os.type:macos and event.type:(start or process_started) and
+ process.name:systemsetup and
+ process.args:("-setremotelogin" and on) and
+ not process.parent.executable : /usr/local/jamf/bin/jamf
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1021"
+name = "Remote Services"
+reference = "https://attack.mitre.org/techniques/T1021/"
+[[rule.threat.technique.subtechnique]]
+id = "T1021.004"
+name = "SSH"
+reference = "https://attack.mitre.org/techniques/T1021/004/"
+
+
+
+[rule.threat.tactic]
+id = "TA0008"
+name = "Lateral Movement"
+reference = "https://attack.mitre.org/tactics/TA0008/"
+

@@ -1,0 +1,67 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = "Identifies the creation of an AWS log trail that specifies the settings for delivery of log data."
+enabled = true
+exceptions_list = []
+false_positives = [
+    """
+    Trail creations may be made by a system or network administrator. Verify whether the user identity, user agent,
+    and/or hostname should be making changes in your environment. Trail creations by unfamiliar users or hosts should be
+    investigated. If known behavior is causing false positives, it can be exempted from the rule.
+    """,
+]
+from = "now-60m"
+index = ["filebeat-*", "logs-aws.cloudtrail-*", "logs-logen-*"]
+interval = "10m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "AWS CloudTrail Log Created [Duplicate]"
+note = ""
+references = [
+    "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_CreateTrail.html",
+    "https://awscli.amazonaws.com/v2/documentation/api/latest/reference/cloudtrail/create-trail.html",
+]
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "3050b1ae-121b-4ce8-9c41-a95c85b4caa5"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = [
+    "Domain: Cloud",
+    "Data Source: AWS",
+    "Data Source: Amazon Web Services",
+    "Use Case: Log Auditing",
+    "Tactic: Collection",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.dataset:aws.cloudtrail and event.provider:cloudtrail.amazonaws.com and event.action:CreateTrail and event.outcome:success
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1530"
+name = "Data from Cloud Storage"
+reference = "https://attack.mitre.org/techniques/T1530/"
+
+
+[rule.threat.tactic]
+id = "TA0009"
+name = "Collection"
+reference = "https://attack.mitre.org/tactics/TA0009/"
+

@@ -1,0 +1,82 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies modifications to an environment variable using the built-in launchctl command. Adversaries may execute their
+own malicious payloads by hijacking certain environment variables to load arbitrary libraries or bypass certain
+restrictions.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["logs-endpoint.events.*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "Modification of Environment Variable via Unsigned or Untrusted Parent [Duplicate]"
+references = [
+    "https://github.com/rapid7/metasploit-framework/blob/master//modules/post/osx/escalate/tccbypass.rb",
+]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "826103b6-5338-4132-aae2-952456a3720d"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: macOS",
+    "Use Case: Threat Detection",
+    "Tactic: Defense Evasion",
+    "Data Source: Elastic Defend",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.category:process and host.os.type:macos and event.type:start and 
+  process.name:launchctl and 
+  (process.parent.code_signature.exists : false or process.parent.code_signature.trusted : false) and
+  process.args:(setenv and not (ANT_HOME or 
+                                DBUS_LAUNCHD_SESSION_BUS_SOCKET or 
+                                EDEN_ENV or 
+                                LG_WEBOS_TV_SDK_HOME or 
+                                RUNTIME_JAVA_HOME or 
+                                WEBOS_CLI_TV or 
+                                JAVA*_HOME) and 
+                not *.vmoptions) and 
+  not process.parent.executable:("/Applications/IntelliJ IDEA CE.app/Contents/jbr/Contents/Home/lib/jspawnhelper" or 
+                                  /Applications/NoMachine.app/Contents/Frameworks/bin/nxserver.bin or 
+                                  /Applications/NoMachine.app/Contents/Frameworks/bin/nxserver.bin or 
+                                  /usr/local/bin/kr)
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1574"
+name = "Hijack Execution Flow"
+reference = "https://attack.mitre.org/techniques/T1574/"
+[[rule.threat.technique.subtechnique]]
+id = "T1574.007"
+name = "Path Interception by PATH Environment Variable"
+reference = "https://attack.mitre.org/techniques/T1574/007/"
+
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

@@ -1,0 +1,70 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+building_block_type = "default"
+description = """
+Identifies files written to the root of the Recycle Bin folder instead of subdirectories. Adversaries may place files in
+the root of the Recycle Bin in preparation for exfiltration or to evade defenses.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-119m"
+index = ["logs-endpoint.events.file-*", "logs-logen-*"]
+interval = "60m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "File Staged in Root Folder of Recycle Bin [Duplicate]"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "d8d8d3cc-d544-44c8-b891-e342e11f89d7"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Windows",
+    "Use Case: Threat Detection",
+    "Tactic: Collection",
+    "Data Source: Elastic Defend",
+    "Rule Type: BBR",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+file where host.os.type == "windows" and event.type == "creation" and
+  file.path : "?:\\$RECYCLE.BIN\\*" and
+  not file.path : "?:\\$RECYCLE.BIN\\*\\*" and
+  not file.name : "desktop.ini"
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1074"
+name = "Data Staged"
+reference = "https://attack.mitre.org/techniques/T1074/"
+[[rule.threat.technique.subtechnique]]
+id = "T1074.001"
+name = "Local Data Staging"
+reference = "https://attack.mitre.org/techniques/T1074/001/"
+
+
+
+[rule.threat.tactic]
+id = "TA0009"
+name = "Collection"
+reference = "https://attack.mitre.org/tactics/TA0009/"
+

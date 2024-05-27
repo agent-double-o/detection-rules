@@ -1,0 +1,56 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Detects repeated high-confidence 'BLOCKED' actions coupled with specific violation codes such as 'MISCONDUCT',
+indicating persistent misuse or attempts to probe the model's ethical boundaries.
+"""
+enabled = true
+exceptions_list = []
+false_positives = ["New model deployments.", "Testing updates to compliance policies."]
+from = "now-60m"
+interval = "10m"
+language = "esql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Unusual High Confidence Misconduct Blocks Detected [Duplicate]"
+references = [
+    "https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-components.html",
+    "https://atlas.mitre.org/techniques/AML.T0051",
+    "https://atlas.mitre.org/techniques/AML.T0054",
+    "https://www.elastic.co/security-labs/elastic-advances-llm-security",
+]
+related_integrations = []
+required_fields = []
+risk_score = 73
+risk_score_mapping = []
+rule_id = "b5c40118-b43f-49d4-b986-0e312b4ca24f"
+setup = ""
+severity = "high"
+severity_mapping = []
+tags = [
+    "Domain: LLM",
+    "Data Source: AWS Bedrock",
+    "Data Source: AWS S3",
+    "Use Case: Policy Violation",
+    "Mitre Atlas: T0051",
+    "Mitre Atlas: T0054",
+]
+threat = []
+timestamp_override = "event.ingested"
+to = "now"
+type = "esql"
+
+query = '''
+from logs-aws_bedrock.invocation-*
+| where gen_ai.policy.confidence == "HIGH" and gen_ai.policy.action == "BLOCKED" and gen_ai.compliance.violation_code == "MISCONDUCT"
+| stats high_confidence_blocks = count() by user.id
+| where high_confidence_blocks > 5
+| sort high_confidence_blocks desc
+'''
+

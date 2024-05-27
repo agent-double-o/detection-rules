@@ -1,0 +1,69 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies when the openssl command-line utility is used to encrypt multiple files on a host within a short time window.
+Adversaries may encrypt data on a single or multiple systems in order to disrupt the availability of their target's data
+and may attempt to hold the organization's data to ransom for the purposes of extortion.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["logs-endpoint.events.*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Suspicious Data Encryption via OpenSSL Utility [Duplicate]"
+references = [
+    "https://www.welivesecurity.com/2017/06/30/telebots-back-supply-chain-attacks-against-ukraine/",
+    "https://www.trendmicro.com/en_us/research/21/f/bash-ransomware-darkradiation-targets-red-hat--and-debian-based-linux-distributions.html",
+]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "be7fd906-ec82-4e5a-8f99-4412a5a08f93"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Linux",
+    "Use Case: Threat Detection",
+    "Tactic: Impact",
+    "Data Source: Elastic Defend",
+]
+to = "now"
+type = "eql"
+
+query = '''
+sequence by host.id, user.name, process.parent.entity_id with maxspan=5s
+  [ process where host.os.type == "linux" and event.action == "exec" and 
+    process.name == "openssl" and process.parent.name : ("bash", "dash", "sh", "tcsh", "csh", "zsh", "ksh", "fish", "perl*", "php*", "python*", "xargs") and
+    process.args == "-in" and process.args == "-out" and
+    process.args in ("-k", "-K", "-kfile", "-pass", "-iv", "-md") and
+    /* excluding base64 encoding options and including encryption password or key params */
+    not process.args in ("-d", "-a", "-A", "-base64", "-none", "-nosalt") ] with runs=10
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1486"
+name = "Data Encrypted for Impact"
+reference = "https://attack.mitre.org/techniques/T1486/"
+
+
+[rule.threat.tactic]
+id = "TA0040"
+name = "Impact"
+reference = "https://attack.mitre.org/tactics/TA0040/"
+

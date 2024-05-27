@@ -1,0 +1,69 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies the execution of the PRoot utility, an open-source tool for user-space implementation of chroot, mount
+--bind, and binfmt_misc. Adversaries can leverage an open-source tool PRoot to expand the scope of their operations to
+multiple Linux distributions and simplify their necessary efforts. In a normal threat scenario, the scope of an attack
+is limited by the varying configurations of each Linux distribution. With PRoot, it provides an attacker with a
+consistent operational environment across different Linux distributions, such as Ubuntu, Fedora, and Alpine. PRoot also
+provides emulation capabilities that allow for malware built on other architectures, such as ARM, to be run.The
+post-exploitation technique called bring your own filesystem (BYOF), can be used by the threat actors to execute
+malicious payload or elevate privileges or perform network scans or orchestrate another attack on the environment.
+Although PRoot was originally not developed with malicious intent it can be easily tuned to work for one.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["logs-endpoint.events.*", "endgame-*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Potential Defense Evasion via PRoot [Duplicate]"
+references = ["https://proot-me.github.io/"]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "ef9b927e-d49f-4910-9038-569821b23f43"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Linux",
+    "Use Case: Threat Detection",
+    "Tactic: Defense Evasion",
+    "Data Source: Elastic Defend",
+    "Data Source: Elastic Endgame",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+process where host.os.type == "linux" and event.type == "start" and event.action in ("exec", "exec_event") and
+process.parent.name == "proot"
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1211"
+name = "Exploitation for Defense Evasion"
+reference = "https://attack.mitre.org/techniques/T1211/"
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

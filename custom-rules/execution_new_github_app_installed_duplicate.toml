@@ -1,0 +1,57 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+This rule detects when a new GitHub App has been installed in your organization account. GitHub Apps extend GitHub's
+functionality both within and outside of GitHub. When an app is installed it is granted permissions to read or modify
+your repository and organization data. Only trusted apps should be installed and any newly installed apps should be
+investigated to verify their legitimacy. Unauthorized app installation could lower your organization's security posture
+and leave you exposed for future attacks.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["logs-github.audit-*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "New GitHub App Installed [Duplicate]"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "02243bb7-61ee-4cde-9fc5-b6a4f921a4ab"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = ["Domain: Cloud", "Use Case: Threat Detection", "Tactic: Execution", "Data Source: Github"]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+configuration where event.dataset == "github.audit" and event.action == "integration_installation.create"
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1072"
+name = "Software Deployment Tools"
+reference = "https://attack.mitre.org/techniques/T1072/"
+
+
+[rule.threat.tactic]
+id = "TA0002"
+name = "Execution"
+reference = "https://attack.mitre.org/tactics/TA0002/"
+

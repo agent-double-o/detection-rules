@@ -1,0 +1,72 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies processes loading Active Directory related modules followed by a network connection to the ADWS dedicated TCP
+port. Adversaries may abuse the ADWS Windows service that allows Active Directory to be queried via this web service.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["logs-endpoint.events.library-*", "logs-endpoint.events.network-*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Potential Enumeration via Active Directory Web Service [Duplicate]"
+references = ["https://github.com/FalconForceTeam/SOAPHound"]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "b0185fcc-992b-4dbb-9a0a-a4f2233f8fee"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Windows",
+    "Use Case: Threat Detection",
+    "Tactic: Discovery",
+    "Data Source: Elastic Defend",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+sequence by process.entity_id with maxspan=3m
+ [library where host.os.type == "windows" and 
+  dll.name : ("System.DirectoryServices*.dll", "System.IdentityModel*.dll") and 
+  not user.id in ("S-1-5-18", "S-1-5-19", "S-1-5-20") and 
+  not process.executable : 
+                ("?:\\windows\\system32\\dsac.exe", 
+                 "?:\\program files\\powershell\\?\\pwsh.exe", 
+                 "?:\\windows\\system32\\windowspowershell\\*.exe", 
+                 "?:\\windows\\syswow64\\windowspowershell\\*.exe", 
+                 "?:\\program files\\microsoft monitoring agent\\*.exe", 
+                 "?:\\windows\\adws\\microsoft.activedirectory.webservices.exe")]
+ [network where host.os.type == "windows" and destination.port == 9389 and source.port >= 49152 and
+  network.direction == "egress" and network.transport == "tcp" and not cidrmatch(destination.ip, "127.0.0.0/8", "::1/128")]
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1018"
+name = "Remote System Discovery"
+reference = "https://attack.mitre.org/techniques/T1018/"
+
+
+[rule.threat.tactic]
+id = "TA0007"
+name = "Discovery"
+reference = "https://attack.mitre.org/tactics/TA0007/"
+

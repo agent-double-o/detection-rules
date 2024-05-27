@@ -1,0 +1,58 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Austin Songer"]
+description = "Detects when Okta FastPass prevents a user from authenticating to a phishing website."
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-6m"
+index = ["filebeat-*", "logs-okta*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "Okta FastPass Phishing Detection [Duplicate]"
+note = ""
+references = [
+    "https://developer.okta.com/docs/reference/api/system-log/",
+    "https://developer.okta.com/docs/reference/api/event-types/",
+    "https://sec.okta.com/fastpassphishingdetection",
+    "https://sec.okta.com/articles/2023/08/cross-tenant-impersonation-prevention-and-detection",
+]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "83e06baa-a1f7-4435-92f9-44c767726c0e"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = ["Tactic: Initial Access", "Use Case: Identity and Access Audit", "Data Source: Okta"]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.dataset:okta.system and event.category:authentication and
+  okta.event_type:user.authentication.auth_via_mfa and event.outcome:failure and okta.outcome.reason:"FastPass declined phishing attempt"
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1566"
+name = "Phishing"
+reference = "https://attack.mitre.org/techniques/T1566/"
+
+
+[rule.threat.tactic]
+id = "TA0001"
+name = "Initial Access"
+reference = "https://attack.mitre.org/tactics/TA0001/"
+

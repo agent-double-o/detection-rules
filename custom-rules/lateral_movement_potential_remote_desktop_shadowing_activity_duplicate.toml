@@ -1,0 +1,93 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies the modification of the Remote Desktop Protocol (RDP) Shadow registry or the execution of processes
+indicative of an active RDP shadowing session. An adversary may abuse the RDP Shadowing feature to spy on or control
+other users active RDP sessions.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = [
+    "logs-endpoint.events.process-*",
+    "logs-endpoint.events.registry-*",
+    "winlogbeat-*",
+    "logs-windows.sysmon_operational-*",
+    "endgame-*",
+    "logs-logen-*",
+]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Potential Remote Desktop Shadowing Activity [Duplicate]"
+references = [
+    "https://bitsadm.in/blog/spying-on-users-using-rdp-shadowing",
+    "https://swarm.ptsecurity.com/remote-desktop-services-shadowing/",
+]
+related_integrations = []
+required_fields = []
+risk_score = 73
+risk_score_mapping = []
+rule_id = "871034da-5f2c-470c-a564-d43239f6a8e6"
+setup = ""
+severity = "high"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Windows",
+    "Use Case: Threat Detection",
+    "Tactic: Lateral Movement",
+    "Data Source: Elastic Endgame",
+    "Data Source: Elastic Defend",
+    "Data Source: Sysmon",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+/* Identifies the modification of RDP Shadow registry or
+  the execution of processes indicative of active shadow RDP session */
+
+any where host.os.type == "windows" and
+(
+  (event.category == "registry" and
+     registry.path : (
+      "HKLM\\Software\\Policies\\Microsoft\\Windows NT\\Terminal Services\\Shadow",
+      "\\REGISTRY\\MACHINE\\Software\\Policies\\Microsoft\\Windows NT\\Terminal Services\\Shadow"
+    )
+  ) or
+  (event.category == "process" and event.type == "start" and
+     (process.name : ("RdpSaUacHelper.exe", "RdpSaProxy.exe") and process.parent.name : "svchost.exe") or
+     (process.pe.original_file_name : "mstsc.exe" and process.args : "/shadow:*")
+  )
+)
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1021"
+name = "Remote Services"
+reference = "https://attack.mitre.org/techniques/T1021/"
+[[rule.threat.technique.subtechnique]]
+id = "T1021.001"
+name = "Remote Desktop Protocol"
+reference = "https://attack.mitre.org/techniques/T1021/001/"
+
+
+
+[rule.threat.tactic]
+id = "TA0008"
+name = "Lateral Movement"
+reference = "https://attack.mitre.org/tactics/TA0008/"
+

@@ -1,0 +1,104 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Detects suspicious process events executed by the APT package manager, potentially indicating persistence through an APT
+backdoor. In Linux, APT (Advanced Package Tool) is a command-line utility used for handling packages on Debian-based
+systems, providing functions for installing, updating, upgrading, and removing software along with managing package
+repositories. Attackers can backdoor APT to gain persistence by injecting malicious code into scripts that APT runs,
+thereby ensuring continued unauthorized access or control each time APT is used for package management.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = ["logs-endpoint.events.*", "logs-logen-*"]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Suspicious APT Package Manager Execution [Duplicate]"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "a17a9dad-01bb-431a-b307-7d43fb4ff0e3"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Linux",
+    "Use Case: Threat Detection",
+    "Tactic: Persistence",
+    "Tactic: Execution",
+    "Tactic: Defense Evasion",
+    "Data Source: Elastic Defend",
+]
+to = "now"
+type = "eql"
+
+query = '''
+sequence by host.id with maxspan=5s
+  [process where host.os.type == "linux" and event.type == "start" and event.action == "exec" and
+   process.parent.name == "apt" and process.args == "-c" and process.name in (
+     "bash", "dash", "sh", "tcsh", "csh", "zsh", "ksh", "fish"
+   )
+  ] by process.entity_id
+  [process where host.os.type == "linux" and event.type == "start" and event.action == "exec" and process.name : (
+     "bash", "dash", "sh", "tcsh", "csh", "zsh", "ksh", "fish", "python*", "php*",
+     "perl", "ruby", "lua*", "openssl", "nc", "netcat", "ncat", "telnet", "awk"
+   )
+  ] by process.parent.entity_id
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1543"
+name = "Create or Modify System Process"
+reference = "https://attack.mitre.org/techniques/T1543/"
+
+[[rule.threat.technique]]
+id = "T1574"
+name = "Hijack Execution Flow"
+reference = "https://attack.mitre.org/techniques/T1574/"
+
+
+[rule.threat.tactic]
+id = "TA0003"
+name = "Persistence"
+reference = "https://attack.mitre.org/tactics/TA0003/"
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1059"
+name = "Command and Scripting Interpreter"
+reference = "https://attack.mitre.org/techniques/T1059/"
+[[rule.threat.technique.subtechnique]]
+id = "T1059.004"
+name = "Unix Shell"
+reference = "https://attack.mitre.org/techniques/T1059/004/"
+
+
+
+[rule.threat.tactic]
+id = "TA0002"
+name = "Execution"
+reference = "https://attack.mitre.org/tactics/TA0002/"
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+technique = []
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

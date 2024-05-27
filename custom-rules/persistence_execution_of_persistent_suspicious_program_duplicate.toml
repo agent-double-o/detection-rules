@@ -1,0 +1,89 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies execution of suspicious persistent programs (scripts, rundll32, etc.) by looking at process lineage and
+command line usage.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = [
+    "winlogbeat-*",
+    "logs-endpoint.events.process-*",
+    "logs-windows.sysmon_operational-*",
+    "endgame-*",
+    "logs-logen-*",
+]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Execution of Persistent Suspicious Program [Duplicate]"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "faa34de6-664a-4252-ad6c-97498c612a1d"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Windows",
+    "Use Case: Threat Detection",
+    "Tactic: Persistence",
+    "Data Source: Elastic Endgame",
+    "Data Source: Elastic Defend",
+    "Data Source: Sysmon",
+]
+to = "now"
+type = "eql"
+
+query = '''
+/* userinit followed by explorer followed by early child process of explorer (unlikely to be launched interactively) within 1m */
+sequence by host.id, user.name with maxspan=1m
+  [process where host.os.type == "windows" and event.type == "start" and process.name : "userinit.exe" and process.parent.name : "winlogon.exe"]
+  [process where host.os.type == "windows" and event.type == "start" and process.name : "explorer.exe"]
+  [process where host.os.type == "windows" and event.type == "start" and process.parent.name : "explorer.exe" and
+   /* add suspicious programs here */
+   process.pe.original_file_name in ("cscript.exe",
+                                     "wscript.exe",
+                                     "PowerShell.EXE",
+                                     "MSHTA.EXE",
+                                     "RUNDLL32.EXE",
+                                     "REGSVR32.EXE",
+                                     "RegAsm.exe",
+                                     "MSBuild.exe",
+                                     "InstallUtil.exe") and
+    /* add potential suspicious paths here */
+    process.args : ("C:\\Users\\*", "C:\\ProgramData\\*", "C:\\Windows\\Temp\\*", "C:\\Windows\\Tasks\\*", "C:\\PerfLogs\\*", "C:\\Intel\\*")
+   ]
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1547"
+name = "Boot or Logon Autostart Execution"
+reference = "https://attack.mitre.org/techniques/T1547/"
+[[rule.threat.technique.subtechnique]]
+id = "T1547.001"
+name = "Registry Run Keys / Startup Folder"
+reference = "https://attack.mitre.org/techniques/T1547/001/"
+
+
+
+[rule.threat.tactic]
+id = "TA0003"
+name = "Persistence"
+reference = "https://attack.mitre.org/tactics/TA0003/"
+

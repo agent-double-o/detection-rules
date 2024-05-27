@@ -1,0 +1,52 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies multiple violations of AWS Bedrock guardrails within a single request, resulting in a block action,
+increasing the likelihood of malicious intent. Multiple violations implies that a user may be intentionally attempting
+to cirvumvent security controls, access sensitive information, or possibly exploit a vulnerability in the system.
+"""
+enabled = false
+exceptions_list = []
+false_positives = ["Legitimate misunderstanding by users or overly strict policies"]
+from = "now-3600s"
+interval = "10m"
+language = "esql"
+license = "Elastic License v2"
+max_signals = 100
+name = "DaC Test AWS Bedrock Guardrails 99"
+references = [
+    "https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-components.html",
+    "https://atlas.mitre.org/techniques/AML.T0051",
+    "https://atlas.mitre.org/techniques/AML.T0054",
+    "https://www.elastic.co/security-labs/elastic-advances-llm-security",
+]
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "0239f134-c4b9-462f-9c8d-4139139d5bdc"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = ["DaC", "Test"]
+threat = []
+timestamp_override = "event.ingested"
+to = "now"
+type = "esql"
+
+query = '''
+FROM logs-logen-* | WHERE event.dataset == "aws.cloudtrail" | WHERE source.ip IS NOT NULL | STATS count = count_distinct(source.ip) BY source.geo.continent_name,source.geo.country_name, source.geo.city_name
+'''
+
+
+
+[rule.meta]
+from = "50m"
+kibana_siem_app_url = ""
+

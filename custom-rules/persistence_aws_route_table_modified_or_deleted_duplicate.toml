@@ -1,0 +1,71 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic", "Austin Songer"]
+description = "Identifies when an AWS Route Table has been modified or deleted."
+enabled = true
+exceptions_list = []
+false_positives = [
+    """
+    Route Table could be modified or deleted by a system administrator. Verify whether the user identity, user agent,
+    and/or hostname should be making changes in your environment. Route Table being modified from unfamiliar users
+    should be investigated. If known behavior is causing false positives, it can be exempted from the rule. Also
+    automated processes that use Terraform may lead to false positives.
+    """,
+]
+from = "now-60m"
+index = ["filebeat-*", "logs-aws.cloudtrail-*", "logs-logen-*"]
+interval = "10m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "AWS Route Table Modified or Deleted [Duplicate]"
+note = ""
+references = [
+    "https://github.com/easttimor/aws-incident-response#network-routing",
+    "https://docs.datadoghq.com/security_platform/default_rules/aws-ec2-route-table-modified/",
+    "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ReplaceRoute.html",
+    "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ReplaceRouteTableAssociation",
+    "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DeleteRouteTable.html",
+    "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DeleteRoute.html",
+    "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DisassociateRouteTable.html",
+]
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "586f7610-2355-46ea-bd79-d42be6820bc1"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = [
+    "Domain: Cloud",
+    "Data Source: AWS",
+    "Data Source: Amazon Web Services",
+    "Data Source: AWS Route53",
+    "Use Case: Network Security Monitoring",
+    "Tactic: Persistence",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.dataset:aws.cloudtrail and event.provider:ec2.amazonaws.com and event.action:(ReplaceRoute or ReplaceRouteTableAssociation or
+DeleteRouteTable or DeleteRoute or DisassociateRouteTable) and event.outcome:success
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+technique = []
+
+[rule.threat.tactic]
+id = "TA0003"
+name = "Persistence"
+reference = "https://attack.mitre.org/tactics/TA0003/"
+

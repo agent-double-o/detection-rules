@@ -1,0 +1,77 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Austin Songer"]
+description = """
+Identifies when an attempt was made to restore an RDS Snapshot. Snapshots are sometimes shared by threat actors in order
+to exfiltrate bulk data or evade detection after performing malicious activities. If the permissions were modified,
+verify if the snapshot was shared with an unauthorized or unexpected AWS account.
+"""
+enabled = true
+exceptions_list = []
+false_positives = [
+    """
+    Restoring snapshots may be done by a system or network administrator. Verify whether the user identity, user agent,
+    and/or hostname should be making changes in your environment. Snapshot restoration by unfamiliar users or hosts
+    should be investigated. If known behavior is causing false positives, it can be exempted from the rule.
+    """,
+]
+from = "now-6m"
+index = ["filebeat-*", "logs-aws.cloudtrail-*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "AWS RDS Snapshot Restored [Duplicate]"
+note = ""
+references = [
+    "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_RestoreDBInstanceFromDBSnapshot.html",
+    "https://github.com/RhinoSecurityLabs/pacu/blob/master/pacu/modules/rds__explore_snapshots/main.py",
+]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "f8075e12-0616-42c1-ba4d-b93ff15eb3c8"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = [
+    "Domain: Cloud",
+    "Data Source: AWS",
+    "Data Source: Amazon Web Services",
+    "Use Case: Asset Visibility",
+    "Tactic: Defense Evasion",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.dataset:aws.cloudtrail and event.provider:rds.amazonaws.com and event.action:RestoreDBInstanceFromDBSnapshot and
+event.outcome:success
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1578"
+name = "Modify Cloud Compute Infrastructure"
+reference = "https://attack.mitre.org/techniques/T1578/"
+[[rule.threat.technique.subtechnique]]
+id = "T1578.004"
+name = "Revert Cloud Instance"
+reference = "https://attack.mitre.org/techniques/T1578/004/"
+
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

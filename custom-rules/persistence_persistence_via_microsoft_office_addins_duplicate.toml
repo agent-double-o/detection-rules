@@ -1,0 +1,77 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = "Detects attempts to establish persistence on an endpoint by abusing Microsoft Office add-ins."
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-9m"
+index = [
+    "logs-endpoint.events.file-*",
+    "winlogbeat-*",
+    "logs-windows.sysmon_operational-*",
+    "endgame-*",
+    "logs-logen-*",
+]
+interval = "5m"
+language = "eql"
+license = "Elastic License v2"
+max_signals = 100
+name = "Persistence via Microsoft Office AddIns [Duplicate]"
+references = ["https://labs.withsecure.com/publications/add-in-opportunities-for-office-persistence"]
+related_integrations = []
+required_fields = []
+risk_score = 73
+risk_score_mapping = []
+rule_id = "5ec93317-9671-4fc1-b588-044ad2fa408c"
+setup = ""
+severity = "high"
+severity_mapping = []
+tags = [
+    "Domain: Endpoint",
+    "OS: Windows",
+    "Use Case: Threat Detection",
+    "Tactic: Persistence",
+    "Data Source: Elastic Endgame",
+    "Data Source: Elastic Defend",
+    "Data Source: Sysmon",
+]
+timestamp_override = "event.ingested"
+to = "now"
+type = "eql"
+
+query = '''
+file where host.os.type == "windows" and event.type != "deletion" and
+ file.extension : ("wll","xll","ppa","ppam","xla","xlam") and
+ file.path :
+    (
+    "C:\\Users\\*\\AppData\\Roaming\\Microsoft\\Word\\Startup\\*",
+    "C:\\Users\\*\\AppData\\Roaming\\Microsoft\\AddIns\\*",
+    "C:\\Users\\*\\AppData\\Roaming\\Microsoft\\Excel\\XLSTART\\*"
+    )
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1137"
+name = "Office Application Startup"
+reference = "https://attack.mitre.org/techniques/T1137/"
+[[rule.threat.technique.subtechnique]]
+id = "T1137.006"
+name = "Add-ins"
+reference = "https://attack.mitre.org/techniques/T1137/006/"
+
+
+
+[rule.threat.tactic]
+id = "TA0003"
+name = "Persistence"
+reference = "https://attack.mitre.org/tactics/TA0003/"
+

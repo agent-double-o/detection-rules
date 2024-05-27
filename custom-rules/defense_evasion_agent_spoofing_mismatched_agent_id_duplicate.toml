@@ -1,0 +1,60 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Detects events that have a mismatch on the expected event agent ID. The status "agent_id_mismatch" occurs when the
+expected agent ID associated with the API key does not match the actual agent ID in an event. This could indicate
+attempts to spoof events in order to masquerade actual activity to evade detection.
+"""
+enabled = true
+exceptions_list = []
+false_positives = [
+    """
+    This is meant to run only on datasources using Elastic Agent 7.14+ since versions prior to that will be missing the
+    necessary field, resulting in false positives.
+    """,
+]
+from = "now-9m"
+index = ["logs-*", "metrics-*", "traces-*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "Agent Spoofing - Mismatched Agent ID [Duplicate]"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 73
+risk_score_mapping = []
+rule_id = "b5fe1d84-a4cb-4892-bde1-7c717107f039"
+setup = ""
+severity = "high"
+severity_mapping = []
+tags = ["Use Case: Threat Detection", "Tactic: Defense Evasion"]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.agent_id_status:agent_id_mismatch
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1036"
+name = "Masquerading"
+reference = "https://attack.mitre.org/techniques/T1036/"
+
+
+[rule.threat.tactic]
+id = "TA0005"
+name = "Defense Evasion"
+reference = "https://attack.mitre.org/tactics/TA0005/"
+

@@ -1,0 +1,75 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Detects when a user has started multiple Okta sessions with the same user account and different session IDs. This may
+indicate an attacker has compromised a user's Okta account and is using it to access the organization's resources.
+"""
+enabled = true
+exceptions_list = []
+false_positives = []
+from = "now-30m"
+index = ["filebeat-*", "logs-okta*", "logs-logen-*"]
+interval = "60m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "Multiple Okta Client Addresses for a Single User Session [Duplicate]"
+note = ""
+references = [
+    "https://developer.okta.com/docs/reference/api/system-log/",
+    "https://developer.okta.com/docs/reference/api/event-types/",
+    "https://www.elastic.co/security-labs/testing-okta-visibility-and-detection-dorothy",
+    "https://sec.okta.com/articles/2023/08/cross-tenant-impersonation-prevention-and-detection",
+]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "077a70cf-cccd-4354-a97f-0c5c2dbeeef7"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = ["Use Case: Identity and Access Audit", "Data Source: Okta", "Tactic: Initial Access"]
+timestamp_override = "event.ingested"
+to = "now"
+type = "threshold"
+
+query = '''
+event.dataset:okta.system
+    and okta.authentication_context.external_session_id:* and okta.debug_context.debug_data.dt_hash:*
+    and not (okta.actor.id: okta* or okta.actor.display_name: okta*)
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1078"
+name = "Valid Accounts"
+reference = "https://attack.mitre.org/techniques/T1078/"
+[[rule.threat.technique.subtechnique]]
+id = "T1078.004"
+name = "Cloud Accounts"
+reference = "https://attack.mitre.org/techniques/T1078/004/"
+
+
+
+[rule.threat.tactic]
+id = "TA0001"
+name = "Initial Access"
+reference = "https://attack.mitre.org/tactics/TA0001/"
+
+[rule.threshold]
+field = ["okta.actor.id", "okta.authentication_context.external_session_id"]
+value = 1
+[[rule.threshold.cardinality]]
+field = "okta.debug_context.debug_data.dt_hash"
+value = 2
+
+

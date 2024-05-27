@@ -1,0 +1,66 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies when an administrator role is assigned to an Okta user. An adversary may attempt to assign an administrator
+role to an Okta user in order to assign additional permissions to a user account and maintain access to their target's
+environment.
+"""
+enabled = true
+exceptions_list = []
+false_positives = [
+    """
+    Administrator roles may be assigned to Okta users by a Super Admin user. Verify that the behavior was expected.
+    Exceptions can be added to this rule to filter expected behavior.
+    """,
+]
+from = "now-6m"
+index = ["filebeat-*", "logs-okta*", "logs-logen-*"]
+interval = "5m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "Administrator Role Assigned to an Okta User [Duplicate]"
+note = ""
+references = [
+    "https://help.okta.com/en/prod/Content/Topics/Security/administrators-admin-comparison.htm",
+    "https://developer.okta.com/docs/reference/api/system-log/",
+    "https://developer.okta.com/docs/reference/api/event-types/",
+    "https://www.elastic.co/security-labs/testing-okta-visibility-and-detection-dorothy",
+]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "e95fb132-5a60-4c54-8687-11169fe41508"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = ["Data Source: Okta", "Use Case: Identity and Access Audit", "Tactic: Persistence"]
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.dataset:okta.system and event.action:user.account.privilege.grant
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1098"
+name = "Account Manipulation"
+reference = "https://attack.mitre.org/techniques/T1098/"
+
+
+[rule.threat.tactic]
+id = "TA0003"
+name = "Persistence"
+reference = "https://attack.mitre.org/tactics/TA0003/"
+

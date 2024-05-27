@@ -1,0 +1,76 @@
+[metadata]
+creation_date = "2024/05/27"
+maturity = "production"
+updated_date = "2024/05/27"
+
+[rule]
+actions = []
+author = ["Elastic"]
+description = """
+Identifies the occurrence of a security alert from the Google Workspace alerts center. Google Workspace's security alert
+center provides an overview of actionable alerts that may be affecting an organization's domain. An alert is a warning
+of a potential security issue that Google has detected.
+"""
+enabled = true
+exceptions_list = []
+false_positives = [
+    """
+    To tune this rule, add exceptions to exclude any google_workspace.alert.type which should not trigger this rule.
+    """,
+    "For additional tuning, severity exceptions for google_workspace.alert.metadata.severity can be added.",
+]
+from = "now-130m"
+index = ["filebeat-*", "logs-google_workspace*", "logs-logen-*"]
+interval = "10m"
+language = "kuery"
+license = "Elastic License v2"
+max_signals = 100
+name = "Forwarded Google Workspace Security Alert [Duplicate]"
+note = """## Triage and analysis
+
+This is a promotion rule for Google Workspace security events, which are alertable events per the vendor.
+Consult vendor documentation on interpreting specific events."""
+references = ["https://workspace.google.com/products/admin/alert-center/"]
+related_integrations = []
+required_fields = []
+risk_score = 73
+risk_score_mapping = []
+rule_id = "0c5efc48-8a98-4344-8710-aada5688bcad"
+rule_name_override = "google_workspace.alert.type"
+setup = ""
+severity = "high"
+tags = [
+    "Domain: Cloud",
+    "Data Source: Google Workspace",
+    "Use Case: Log Auditing",
+    "Use Case: Threat Detection",
+]
+threat = []
+timestamp_override = "event.ingested"
+to = "now"
+type = "query"
+
+query = '''
+event.dataset: google_workspace.alert
+'''
+
+
+[[rule.severity_mapping]]
+field = "google_workspace.alert.metadata.severity"
+operator = "equals"
+severity = "low"
+value = "LOW"
+
+[[rule.severity_mapping]]
+field = "google_workspace.alert.metadata.severity"
+operator = "equals"
+severity = "medium"
+value = "MEDIUM"
+
+[[rule.severity_mapping]]
+field = "google_workspace.alert.metadata.severity"
+operator = "equals"
+severity = "high"
+value = "HIGH"
+
+
